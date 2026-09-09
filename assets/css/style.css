@@ -1,0 +1,261 @@
+/* =====================================================================
+   CRF Prototype - Custom Styles
+   Palet: putih, biru korporat, abu-abu (sesuai brief butir 29)
+   ===================================================================== */
+
+:root {
+  --crf-blue-900: #123A66;   /* biru gelap - navbar, judul */
+  --crf-blue-700: #1D5FA8;   /* biru utama - tombol, aksen */
+  --crf-blue-100: #E8F0FB;   /* biru sangat muda - hover, highlight */
+  --crf-gray-900: #1F2937;   /* teks utama */
+  --crf-gray-600: #5B6472;   /* teks sekunder */
+  --crf-gray-300: #D9DEE4;   /* border */
+  --crf-gray-100: #F4F6F8;   /* background section */
+  --crf-white:    #FFFFFF;
+
+  --crf-amber:  #B4740E;
+  --crf-red:    #B3261E;
+  --crf-green:  #1E7A3D;
+
+  --crf-radius: 10px;
+  --crf-font: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  font-family: var(--crf-font);
+  background-color: var(--crf-gray-100);
+  color: var(--crf-gray-900);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Navbar ---------- */
+.crf-navbar {
+  background-color: var(--crf-blue-900);
+  padding: 0.85rem 0;
+}
+
+.crf-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+}
+
+.crf-brand-mark {
+  background-color: var(--crf-white);
+  color: var(--crf-blue-900);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+}
+
+.crf-brand-text {
+  color: var(--crf-white);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.crf-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.92rem;
+}
+
+.crf-navbar .nav-link:hover,
+.crf-navbar .nav-link.active {
+  color: var(--crf-white);
+}
+
+/* ---------- Layout wrapper ---------- */
+.crf-page {
+  flex: 1;
+  padding: 2.25rem 0 3rem;
+}
+
+.crf-page-header {
+  margin-bottom: 1.75rem;
+}
+
+.crf-page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--crf-blue-900);
+  margin-bottom: 0.25rem;
+}
+
+.crf-page-header p {
+  color: var(--crf-gray-600);
+  margin-bottom: 0;
+}
+
+/* ---------- Form sections ---------- */
+.crf-section {
+  background-color: var(--crf-white);
+  border: 1px solid var(--crf-gray-300);
+  border-radius: var(--crf-radius);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.crf-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--crf-gray-300);
+  background-color: var(--crf-blue-100);
+}
+
+.crf-section-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background-color: var(--crf-blue-700);
+  color: var(--crf-white);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.crf-section-header h2 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--crf-blue-900);
+  margin: 0;
+}
+
+.crf-section-body {
+  padding: 1.4rem;
+}
+
+.crf-hint {
+  font-size: 0.85rem;
+  color: var(--crf-gray-600);
+  margin-bottom: 0.5rem;
+}
+
+.crf-field-label {
+  font-weight: 600;
+  color: var(--crf-gray-900);
+  margin-bottom: 0.35rem;
+}
+
+.crf-readonly-note {
+  font-size: 0.78rem;
+  color: var(--crf-gray-600);
+}
+
+.crf-readonly-note i {
+  margin-right: 0.2rem;
+}
+
+textarea.form-control {
+  min-height: 110px;
+}
+
+.form-control:read-only,
+.form-select:disabled {
+  background-color: var(--crf-gray-100);
+  color: var(--crf-gray-600);
+}
+
+/* ---------- Buttons ---------- */
+.btn-crf-primary {
+  background-color: var(--crf-blue-700);
+  border-color: var(--crf-blue-700);
+  color: var(--crf-white);
+  font-weight: 600;
+}
+
+.btn-crf-primary:hover {
+  background-color: var(--crf-blue-900);
+  border-color: var(--crf-blue-900);
+  color: var(--crf-white);
+}
+
+.btn-crf-outline {
+  background-color: var(--crf-white);
+  border-color: var(--crf-blue-700);
+  color: var(--crf-blue-700);
+  font-weight: 600;
+}
+
+.btn-crf-outline:hover {
+  background-color: var(--crf-blue-100);
+  color: var(--crf-blue-900);
+  border-color: var(--crf-blue-700);
+}
+
+/* ---------- Badges: Status & Level ---------- */
+.badge-status-draft   { background-color: var(--crf-gray-300); color: var(--crf-gray-900); }
+.badge-status-proses  { background-color: #FFF1D6; color: var(--crf-amber); }
+.badge-status-solve   { background-color: #DFF3E4; color: var(--crf-green); }
+.badge-status-cancel  { background-color: #FBE3E1; color: var(--crf-red); }
+
+.badge-level-none   { background-color: var(--crf-gray-300); color: var(--crf-gray-900); }
+.badge-level-kecil  { background-color: #DFF3E4; color: var(--crf-green); }
+.badge-level-sedang { background-color: #FFF1D6; color: var(--crf-amber); }
+.badge-level-tinggi { background-color: #FBE3E1; color: var(--crf-red); }
+
+.crf-badge {
+  display: inline-block;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* ---------- Dashboard table ---------- */
+.crf-table-card {
+  background-color: var(--crf-white);
+  border: 1px solid var(--crf-gray-300);
+  border-radius: var(--crf-radius);
+  padding: 1.4rem;
+}
+
+.crf-table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--crf-gray-600);
+  border-bottom: 2px solid var(--crf-gray-300);
+  white-space: nowrap;
+}
+
+.crf-table td {
+  vertical-align: middle;
+  font-size: 0.92rem;
+}
+
+/* ---------- Detail view ---------- */
+.crf-detail-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--crf-gray-600);
+  margin-bottom: 0.15rem;
+}
+
+.crf-detail-value {
+  margin-bottom: 1.1rem;
+  white-space: pre-line;
+}
+
+/* ---------- Footer ---------- */
+.crf-footer {
+  padding: 1.25rem 0;
+  color: var(--crf-gray-600);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ---------- Alerts spacing ---------- */
+.crf-alert {
+  margin-bottom: 1.5rem;
+}
