@@ -26,6 +26,9 @@ $toDivision   = 'Divisi Otomasi';
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
+$old = $_SESSION['old_crf'] ?? [];
+unset($_SESSION['old_crf']);
+
 $pageTitle = 'Form CRF';
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -44,7 +47,12 @@ require_once __DIR__ . '/../includes/header.php';
       </div>
     <?php endif; ?>
 
-    <form action="../actions/submit_crf.php" method="POST" enctype="multipart/form-data" id="crfForm">
+    <div id="validationAlert" class="alert alert-danger crf-alert d-none" role="alert">
+      <strong>Mohon lengkapi field berikut:</strong>
+      <ul id="validationList" class="mb-0 mt-2"></ul>
+    </div>
+
+    <form action="../actions/submit_crf.php" method="POST" enctype="multipart/form-data" id="crfForm" novalidate>
 
       <!-- ============================================================ -->
       <!-- 1. INFORMASI PENGAJUAN                                        -->
@@ -56,45 +64,95 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="crf-section-body">
           <div class="row g-3">
+            <div class="col-md-4">
+              <label for="full_name" class="crf-field-label">Nama Lengkap<span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="full_name"
+                name="full_name"
+                placeholder="Masukkan nama lengkap"
+                value="<?= h($old['full_name'] ?? '') ?>"
+                required
+              >
+            </div>
+
+            <div class="col-md-4">
+              <label for="phone" class="crf-field-label">No. Handphone/WA<span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="phone"
+                name="phone"
+                placeholder="Masukkan nomor handphone/WA"
+                value="<?= h($old['phone'] ?? '') ?>"
+                required
+              >
+            </div>
+
+            <div class="col-md-4">
+              <label for="email" class="crf-field-label">Email<span class="text-danger">*</span>
+              </label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+                placeholder="Masukkan alamat email"
+                value="<?= h($old['email'] ?? '') ?>"
+                required
+              >
+            </div>
+            
             <div class="col-md-6">
-              <label class="crf-field-label">Hari/Tanggal</label>
+              <label class="crf-field-label">Hari/Tanggal<span class="text-danger">*</span>
+              </label>
               <input type="text" class="form-control" value="<?= h($tanggalDisplay) ?>" readonly>
               <div class="crf-readonly-note"><i class="bi bi-lock-fill"></i>Diisi otomatis oleh sistem</div>
             </div>
             <div class="col-md-6">
-              <label class="crf-field-label">Nomor Register</label>
+              <label class="crf-field-label">Nomor Register<span class="text-danger">*</span>
+              </label>
               <input type="text" class="form-control" value="<?= h($previewRequestNo) ?>" readonly>
               <div class="crf-readonly-note"><i class="bi bi-lock-fill"></i>Nomor akhir dibuat sistem saat data disimpan</div>
             </div>
             <div class="col-md-6">
-              <label class="crf-field-label">Kepada</label>
+              <label class="crf-field-label">Kepada<span class="text-danger">*</span>
+              </label>
               <input type="text" class="form-control" value="<?= h($toDepartment . ' (' . $toDivision . ')') ?>" readonly>
               <div class="crf-readonly-note"><i class="bi bi-lock-fill"></i>Tujuan pengajuan CRF pada prototype ini tetap</div>
             </div>
             <div class="col-md-6">
-              <label class="crf-field-label">Dari</label>
+              <label class="crf-field-label">Dari<span class="text-danger">*</span>
+              </label>
 
               <div class="row g-2">
                 <div class="col-12">
-                  <label for="from_department" class="form-label">Departemen</label>
+                  <label for="from_department" class="form-label">Departemen<span class="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     class="form-control"
                     id="from_department"
                     name="from_department"
                     placeholder="Masukkan nama departemen"
+                    value="<?= h($old['from_department'] ?? '') ?>"
                     required
                   >
                 </div>
 
                 <div class="col-12">
-                  <label for="from_division" class="form-label">Divisi</label>
+                  <label for="from_division" class="form-label">Divisi<span class="text-danger">*</span>
+                  </label>
                   <input
                     type="text"
                     class="form-control"
                     id="from_division"
                     name="from_division"
                     placeholder="Masukkan nama divisi"
+                    value="<?= h($old['from_division'] ?? '') ?>"
                     required
                   >
                 </div>
@@ -115,27 +173,27 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="crf-section-body">
 
           <div class="mb-3">
-            <label for="change_description" class="crf-field-label">Rincian Permohonan Perubahan</label>
+            <label for="change_description" class="crf-field-label">Rincian Permohonan Perubahan<span class="text-danger">*</span></label>
             <p class="crf-hint">Silakan tulis penjelasan yang lengkap, jelas, dan rinci mengenai permohonan perubahan yang disampaikan.</p>
-            <textarea class="form-control" id="change_description" name="change_description" required></textarea>
+            <textarea class="form-control" id="change_description" name="change_description" required><?= h($old['change_description'] ?? '') ?></textarea>
           </div>
 
           <div class="mb-3">
-            <label for="benefit" class="crf-field-label">Benefit dari Perubahan yang Diharapkan</label>
+            <label for="benefit" class="crf-field-label">Benefit dari Perubahan yang Diharapkan<span class="text-danger">*</span></label>
             <p class="crf-hint">Silakan tulis benefit yang akan diperoleh setelah dilakukan perubahan.</p>
-            <textarea class="form-control" id="benefit" name="benefit" required></textarea>
+            <textarea class="form-control" id="benefit" name="benefit" required><?= h($old['benefit'] ?? '') ?></textarea>
           </div>
 
           <div class="mb-3">
-            <label for="impact" class="crf-field-label">Dampak Jika Tidak Dilakukan Perubahan</label>
+            <label for="impact" class="crf-field-label">Dampak Jika Tidak Dilakukan Perubahan<span class="text-danger">*</span></label>
             <p class="crf-hint">Silakan tulis dampak jika tidak dilakukan perubahan.</p>
-            <textarea class="form-control" id="impact" name="impact" required></textarea>
+            <textarea class="form-control" id="impact" name="impact" required><?= h($old['impact'] ?? '') ?></textarea>
           </div>
 
           <div class="mb-0">
-            <label for="reason" class="crf-field-label">Alasan Permohonan Perubahan</label>
+            <label for="reason" class="crf-field-label">Alasan Permohonan Perubahan<span class="text-danger">*</span></label>
             <p class="crf-hint">Silakan tulis alasan perubahan yang Saudara sampaikan.</p>
-            <textarea class="form-control" id="reason" name="reason" required></textarea>
+            <textarea class="form-control" id="reason" name="reason" required><?= h($old['reason'] ?? '') ?></textarea>
           </div>
 
         </div>
@@ -169,18 +227,18 @@ require_once __DIR__ . '/../includes/header.php';
           <h2>Biaya / Anggaran</h2>
         </div>
         <div class="crf-section-body">
-          <p class="crf-hint">Silakan sampaikan apakah untuk perubahan ini sudah dianggarkan atau perlu diusulkan.</p>
+          <p class="crf-hint">Silakan sampaikan apakah untuk perubahan ini sudah dianggarkan atau perlu diusulkan.<span class="text-danger">*</span></p>
 
           <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="budget_type" id="budget_rkap" value="rkap">
+            <input class="form-check-input" type="radio" name="budget_type" id="budget_rkap" value="rkap"<?= ($old['budget_type'] ?? '') === 'rkap' ? 'checked' : '' ?>>
             <label class="form-check-label" for="budget_rkap">RKAP tahun berjalan</label>
           </div>
           <div class="form-check mb-2">
-            <input class="form-check-input" type="radio" name="budget_type" id="budget_boq" value="boq_pks">
+            <input class="form-check-input" type="radio" name="budget_type" id="budget_boq" value="boq_pks"<?= ($old['budget_type'] ?? '') === 'boq_pks' ? 'checked' : '' ?>>
             <label class="form-check-label" for="budget_boq">Tercantum dalam BoQ PKS</label>
           </div>
           <div class="form-check mb-3">
-            <input class="form-check-input" type="radio" name="budget_type" id="budget_baru" value="anggaran_baru">
+            <input class="form-check-input" type="radio" name="budget_type" id="budget_baru" value="anggaran_baru" <?= ($old['budget_type'] ?? '') === 'anggaran_baru' ? 'checked' : '' ?>>
             <label class="form-check-label" for="budget_baru">Akan diajukan anggaran baru</label>
           </div>
 
@@ -188,7 +246,7 @@ require_once __DIR__ . '/../includes/header.php';
           <div class="input-group" style="max-width: 320px;">
             <span class="input-group-text">Rp</span>
             <input type="number" min="0" step="1000" class="form-control"
-                   id="budget_amount" name="budget_amount" placeholder="0" disabled>
+                   id="budget_amount" name="budget_amount" placeholder="0" value="<?= h($old['budget_amount'] ?? '') ?>" disabled>
           </div>
         </div>
       </div>
@@ -202,19 +260,36 @@ require_once __DIR__ . '/../includes/header.php';
           <h2>Kategori Perubahan</h2>
         </div>
         <div class="crf-section-body">
-          <label for="change_category" class="crf-field-label">Kategori</label>
+          <label for="change_category" class="crf-field-label">Kategori<span class="text-danger">*</span></label>
           <select class="form-select mb-3" id="change_category" name="change_category" required style="max-width: 320px;">
-            <option value="" selected disabled>Pilih kategori...</option>
-            <option value="Aplikasi">Aplikasi</option>
-            <option value="Infrastruktur">Infrastruktur</option>
-            <option value="Proses">Proses</option>
-            <option value="Security">Security</option>
-            <option value="Lainnya">Lainnya</option>
+            <option value="" disabled <?= empty($old['change_category']) ? 'selected' : '' ?>>
+              Pilih kategori...
+            </option>
+
+            <option value="Aplikasi" <?= ($old['change_category'] ?? '') === 'Aplikasi' ? 'selected' : '' ?>>
+              Aplikasi
+            </option>
+
+            <option value="Infrastruktur" <?= ($old['change_category'] ?? '') === 'Infrastruktur' ? 'selected' : '' ?>>
+              Infrastruktur
+            </option>
+
+            <option value="Proses" <?= ($old['change_category'] ?? '') === 'Proses' ? 'selected' : '' ?>>
+              Proses
+            </option>
+
+            <option value="Security" <?= ($old['change_category'] ?? '') === 'Security' ? 'selected' : '' ?>>
+              Security
+            </option>
+
+            <option value="Lainnya" <?= ($old['change_category'] ?? '') === 'Lainnya' ? 'selected' : '' ?>>
+              Lainnya
+            </option>
           </select>
 
           <div id="category-detail-wrap" class="d-none">
-            <label for="change_category_detail" class="crf-field-label" id="category-detail-label">Detail Kategori</label>
-            <input type="text" class="form-control" id="change_category_detail" name="change_category_detail">
+            <label for="change_category_detail" class="crf-field-label" id="category-detail-label">Detail Kategori<span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="change_category_detail" name="change_category_detail" required>
           </div>
         </div>
       </div>
@@ -228,9 +303,9 @@ require_once __DIR__ . '/../includes/header.php';
           <h2>Change Request Action</h2>
         </div>
         <div class="crf-section-body">
-          <label for="alternative_suggestion" class="crf-field-label">Saran Alternatif</label>
+          <label for="alternative_suggestion" class="crf-field-label">Saran Alternatif<span class="text-danger">*</span></label>
           <p class="crf-hint">Saran alternatif yang akan dilakukan atas perubahan yang telah disampaikan.</p>
-          <textarea class="form-control" id="alternative_suggestion" name="alternative_suggestion"></textarea>
+          <textarea class="form-control" id="alternative_suggestion" name="alternative_suggestion" required><?= h($old['alternative_suggestion'] ?? '') ?></textarea>
         </div>
       </div>
 
@@ -247,7 +322,7 @@ require_once __DIR__ . '/../includes/header.php';
             Proses evaluasi yang dilakukan setelah perubahan dilakukan sebelum perubahan tersebut diterapkan.
             <strong>Tidak wajib diisi saat pengajuan pertama</strong> - bagian ini biasanya dilengkapi oleh admin setelah proses berjalan.
           </p>
-          <textarea class="form-control" id="post_implementation_review" name="post_implementation_review"></textarea>
+          <textarea class="form-control" id="post_implementation_review" name="post_implementation_review"><?= h($old['post_implementation_review'] ?? '') ?></textarea>
         </div>
       </div>
 
@@ -264,7 +339,7 @@ require_once __DIR__ . '/../includes/header.php';
             Pelaksanaan yang telah dilakukan atas perubahan yang telah disampaikan.
             <strong>Tidak wajib diisi saat pengajuan pertama.</strong>
           </p>
-          <textarea class="form-control" id="implementation" name="implementation"></textarea>
+          <textarea class="form-control" id="implementation" name="implementation"><?= h($old['implementation'] ?? '') ?></textarea>
         </div>
       </div>
 

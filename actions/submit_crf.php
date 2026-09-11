@@ -22,6 +22,10 @@ $user = getCurrentUser();
 /* ------------------------------------------------------------------
  * 1. Ambil & bersihkan input
  * ------------------------------------------------------------------ */
+$fullName          = trim($_POST['full_name'] ?? '');
+$phone             = trim($_POST['phone'] ?? '');
+$email             = trim($_POST['email'] ?? '');
+
 $changeDescription    = trim($_POST['change_description'] ?? '');
 $benefit               = trim($_POST['benefit'] ?? '');
 $impact                = trim($_POST['impact'] ?? '');
@@ -49,6 +53,20 @@ $allowedCategories = ['Aplikasi', 'Infrastruktur', 'Proses', 'Security', 'Lainny
 $allowedBudgetTypes = ['rkap', 'boq_pks', 'anggaran_baru'];
 
 $errors = [];
+
+if ($fullName === '') {
+    $errors[] = 'Nama Lengkap wajib diisi.';
+}
+
+if ($phone === '') {
+    $errors[] = 'No. Handphone/WA wajib diisi.';
+}
+
+if ($email === '') {
+    $errors[] = 'Email wajib diisi.';
+} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    $errors[] = 'Format email tidak valid.';
+}
 
 if ($changeDescription === '') { $errors[] = 'Rincian Permohonan Perubahan wajib diisi.'; }
 if ($benefit === '')            { $errors[] = 'Benefit dari Perubahan wajib diisi.'; }
@@ -78,10 +96,14 @@ $budgetAmount = ($budgetTypeRaw !== null && $budgetAmountRaw !== '' && is_numeri
     : null;
 
 if ($errors) {
+    // Simpan kembali isian form agar tetap muncul saat halaman dimuat ulang.
+    $_SESSION['old_crf'] = $_POST;
+
     $_SESSION['flash'] = [
         'type'    => 'danger',
-        'message' => 'CRF belum dapat disimpan: ' . implode(' ', $errors),
+        'message' => 'CRF belum dapat disimpan. Silakan periksa field yang belum lengkap.',
     ];
+
     header('Location: ../user/form_crf.php');
     exit;
 }
@@ -104,7 +126,7 @@ try {
 
     $stmt = $pdo->prepare(
         'INSERT INTO change_requests (
-            request_number, user_id, submission_date,
+            request_number, user_id, full_name, phone, email, submission_date,
             to_department, to_division, from_department, from_division,
             change_description, benefit, impact, reason,
             budget_type, budget_amount,
@@ -113,20 +135,23 @@ try {
             post_implementation_review, implementation,
             level, status
         ) VALUES (
-            :request_number, :user_id, :submission_date,
+            :request_number, :user_id, :full_name, :phone, :email, :submission_date,
             :to_department, :to_division, :from_department, :from_division,
             :change_description, :benefit, :impact, :reason,
             :budget_type, :budget_amount,
             :change_category, :change_category_detail,
             :alternative_suggestion,
             :post_implementation_review, :implementation,
-            NULL, "Dalam Proses"
+            NULL, "Belum Ditindak Lanjuti"
         )'
     );
 
     $stmt->execute([
         'request_number'             => $requestNumber,
         'user_id'                    => $user['id'],
+        'full_name'                  => $fullName,
+        'phone'                      => $phone,
+        'email'                      => $email,
         'submission_date'            => $submissionDate,
         'to_department'              => $toDepartment,
         'to_division'                => $toDivision,
@@ -147,7 +172,11 @@ try {
 
     $crfId = (int) $pdo->lastInsertId();
 
-    $uploadErrors = handleAttachmentUploads($pdo, $crfId, $_FILES['attachments'] ?? []);
+    $uploadErrors = handleAttachmentUploads(
+        $pdo,
+        $crfId,
+        $_FILES['attachments'] ?? []
+    );
 
     $pdo->commit();
 

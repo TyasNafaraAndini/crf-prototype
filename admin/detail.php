@@ -16,12 +16,12 @@ $pdo = getConnection();
 $id = (int) ($_GET['id'] ?? 0);
 
 $stmt = $pdo->prepare(
-    'SELECT cr.*, u.name AS submitter_name, u.email AS submitter_email, u.phone AS submitter_phone
+    'SELECT cr.*
      FROM change_requests cr
-     JOIN users u ON u.id = cr.user_id
      WHERE cr.id = :id
      LIMIT 1'
 );
+
 $stmt->execute(['id' => $id]);
 $crf = $stmt->fetch();
 
@@ -78,49 +78,79 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <!-- Informasi Pengajuan -->
-    <div class="crf-section">
-      <div class="crf-section-header">
-        <span class="crf-section-number"><i class="bi bi-info-lg"></i></span>
+    <div class="crf-detail-section">
+    <div class="crf-section-header">
+        <span class="crf-section-number">1</span>
         <h2>Informasi Pengajuan</h2>
-      </div>
-      <div class="crf-section-body">
-        <div class="row">
-          <div class="col-md-3">
-            <div class="crf-detail-label">Hari/Tanggal</div>
-            <div class="crf-detail-value"><?= h(formatTanggalIndonesia(new DateTime($crf['submission_date']))) ?></div>
-          </div>
-          <div class="col-md-3">
-            <div class="crf-detail-label">Nomor Register</div>
-            <div class="crf-detail-value"><?= h($crf['request_number']) ?></div>
-          </div>
-          <div class="col-md-3">
-            <div class="crf-detail-label">Kepada</div>
-            <div class="crf-detail-value"><?= h($crf['to_department'] . ' (' . $crf['to_division'] . ')') ?></div>
-          </div>
-          <div class="col-md-3">
-            <div class="crf-detail-label">Dari</div>
-            <div class="crf-detail-value">
-              <?= h($crf['from_department']) ?><br><?= h('(' . ($crf['from_division'] ?? '-') . ')') ?>
-            </div>
-          </div>
-        </div>
-        <hr>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="crf-detail-label">Pengaju</div>
-            <div class="crf-detail-value"><?= h($crf['submitter_name']) ?></div>
-          </div>
-          <div class="col-md-4">
-            <div class="crf-detail-label">Email</div>
-            <div class="crf-detail-value"><?= h($crf['submitter_email'] ?? '-') ?></div>
-          </div>
-          <div class="col-md-4">
-            <div class="crf-detail-label">No. HP/WA</div>
-            <div class="crf-detail-value"><?= h($crf['submitter_phone'] ?? '-') ?></div>
-          </div>
-        </div>
-      </div>
     </div>
+
+    <div class="crf-section-body">
+
+        <!-- DATA PENGAJU -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="crf-detail-label">PENGAJU</div>
+                <div class="crf-detail-value">
+                    <?= h($crf['full_name']) ?>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="crf-detail-label">EMAIL</div>
+                <div class="crf-detail-value">
+                    <?= h($crf['email'] ?? '-') ?>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="crf-detail-label">NO. HP/WA</div>
+                <div class="crf-detail-value">
+                    <?= h($crf['phone'] ?? '-') ?>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- INFORMASI CRF -->
+        <div class="row g-4 mt-1">
+            <div class="col-md-3">
+                <div class="crf-detail-label">HARI/TANGGAL</div>
+                <div class="crf-detail-value">
+                    <?= h(formatTanggalIndonesia(new DateTime($crf['submission_date']))) ?>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="crf-detail-label">NOMOR REGISTER</div>
+                <div class="crf-detail-value">
+                    <?= h($crf['request_number']) ?>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="crf-detail-label">KEPADA</div>
+                <div class="crf-detail-value">
+                    <?= h($crf['to_department']) ?>
+                    <?php if (!empty($crf['to_division'])): ?>
+                        (<?= h($crf['to_division']) ?>)
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="crf-detail-label">DARI</div>
+                <div class="crf-detail-value">
+                    <?= h($crf['from_department']) ?>
+                    <?php if (!empty($crf['from_division'])): ?>
+                        (<?= h($crf['from_division']) ?>)
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
 
     <!-- Detail Pengajuan -->
     <div class="crf-section">
@@ -145,18 +175,58 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="crf-detail-label">Bukti dan Informasi Pendukung</div>
         <div class="crf-detail-value">
           <?php if (!$attachments): ?>
-            <span class="text-muted">Tidak ada file yang diupload.</span>
+
+            <span class="text-muted">
+              Tidak ada file yang diupload.
+            </span>
+
           <?php else: ?>
-            <ul class="mb-0 ps-3">
+
+            <div class="list-group">
               <?php foreach ($attachments as $file): ?>
-                <li>
-                  <a href="../<?= h($file['file_path']) ?>" target="_blank" rel="noopener">
-                    <?= h($file['original_name']) ?>
-                  </a>
-                  <span class="text-muted">(<?= round($file['file_size'] / 1024) ?> KB)</span>
-                </li>
+
+                <div class="list-group-item d-flex justify-content-between align-items-center gap-3 py-2 px-3">
+
+                  <div class="d-flex align-items-center gap-2 flex-grow-1 min-width-0">
+                    <i class="bi bi-paperclip text-primary"></i>
+
+                    <div class="text-truncate">
+                      <div class="fw-medium text-truncate">
+                        <?= h($file['original_name']) ?>
+                      </div>
+
+                      <small class="text-muted">
+                        <?= round($file['file_size'] / 1024) ?> KB
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="d-flex gap-1 flex-shrink-0">
+                    <a
+                      href="../<?= h($file['file_path']) ?>"
+                      target="_blank"
+                      rel="noopener"
+                      class="btn btn-sm btn-crf-outline py-1 px-2"
+                    >
+                      <i class="bi bi-eye"></i>
+                      Lihat
+                    </a>
+
+                    <a
+                      href="../<?= h($file['file_path']) ?>"
+                      download="<?= h($file['original_name']) ?>"
+                      class="btn btn-sm btn-crf-primary py-1 px-2"
+                    >
+                      <i class="bi bi-download"></i>
+                      Download
+                    </a>
+                  </div>
+
+                </div>
+
               <?php endforeach; ?>
-            </ul>
+            </div>
+
           <?php endif; ?>
         </div>
 

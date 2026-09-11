@@ -127,3 +127,105 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('crfForm');
+  const validationAlert = document.getElementById('validationAlert');
+  const validationList = document.getElementById('validationList');
+
+  if (!form || !validationAlert || !validationList) {
+    return;
+  }
+
+  form.addEventListener('submit', function (event) {
+    const errors = [];
+
+    // Bersihkan pesan sebelumnya
+    validationList.innerHTML = '';
+    validationAlert.classList.add('d-none');
+
+    // Helper untuk mengecek field
+    function checkField(id, label) {
+      const field = document.getElementById(id);
+
+      if (!field || field.value.trim() === '') {
+        errors.push(label);
+      }
+    }
+
+    // Informasi Pengajuan
+    checkField('full_name', 'Nama Lengkap');
+    checkField('phone', 'No. Handphone/WA');
+    checkField('email', 'Email');
+    checkField('from_department', 'Departemen');
+    checkField('from_division', 'Divisi');
+
+    // Change Request Description
+    checkField('change_description', 'Rincian Permohonan Perubahan');
+    checkField('benefit', 'Benefit dari Perubahan yang Diharapkan');
+    checkField('impact', 'Dampak Jika Tidak Dilakukan Perubahan');
+    checkField('reason', 'Alasan Permohonan Perubahan');
+
+    // Bukti pendukung
+    const attachments = document.getElementById('attachments');
+
+    if (!attachments || attachments.files.length === 0) {
+      errors.push('Bukti dan Informasi Pendukung');
+    }
+
+        // Biaya / Anggaran
+    const budgetType = document.querySelector(
+      'input[name="budget_type"]:checked'
+    );
+
+    const budgetAmount = document.getElementById('budget_amount');
+
+    // Jenis anggaran wajib dipilih
+    if (!budgetType) {
+      errors.push('Biaya / Anggaran');
+    }
+
+    // Nominal wajib diisi hanya jika jenis anggaran sudah dipilih
+    if (
+      budgetType &&
+      (!budgetAmount || budgetAmount.value.trim() === '')
+    ) {
+      errors.push('Nominal Anggaran');
+    }
+
+    // Kategori
+    checkField('change_category', 'Kategori Perubahan');
+
+    const categoryDetail = document.getElementById('change_category_detail');
+
+    if (!categoryDetail || categoryDetail.value.trim() === '') {
+      errors.push('Detail Kategori');
+    }
+
+    // Change Request Action
+    checkField('alternative_suggestion', 'Saran Alternatif');
+
+    // Jika ada error
+    if (errors.length > 0) {
+      event.preventDefault();
+
+      errors.forEach(function (error) {
+        const li = document.createElement('li');
+        li.textContent = error + ' belum diisi.';
+        validationList.appendChild(li);
+      });
+
+      validationAlert.classList.remove('d-none');
+
+      // Scroll ke pesan error
+      validationAlert.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+      return;
+    }
+
+    // Jika semua lengkap, form lanjut submit normal
+  });
+});

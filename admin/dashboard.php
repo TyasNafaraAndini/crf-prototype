@@ -17,15 +17,16 @@ $search        = trim($_GET['q'] ?? '');
 $statusFilter   = $_GET['status'] ?? '';
 $categoryFilter = $_GET['category'] ?? '';
 
-$allowedStatuses   = ['Draft', 'Dalam Proses', 'Solve', 'Cancel'];
+$allowedStatuses = ['Belum Ditindak Lanjuti', 'Dalam Proses', 'Solve', 'Cancel'];
 $allowedCategories = ['Aplikasi', 'Infrastruktur', 'Proses', 'Security', 'Lainnya'];
 
 $where  = [];
 $params = [];
 
 if ($search !== '') {
-    $where[] = '(cr.request_number LIKE :search OR u.name LIKE :search)';
-    $params['search'] = '%' . $search . '%';
+    $where[] = '(cr.request_number LIKE :search_request OR cr.full_name LIKE :search_name)';
+    $params['search_request'] = '%' . $search . '%';
+    $params['search_name'] = '%' . $search . '%';
 }
 if (in_array($statusFilter, $allowedStatuses, true)) {
     $where[] = 'cr.status = :status';
@@ -36,9 +37,8 @@ if (in_array($categoryFilter, $allowedCategories, true)) {
     $params['category'] = $categoryFilter;
 }
 
-$sql = 'SELECT cr.*, u.name AS submitter_name
-        FROM change_requests cr
-        JOIN users u ON u.id = cr.user_id';
+$sql = 'SELECT cr.*
+        FROM change_requests cr';
 
 if ($where) {
     $sql .= ' WHERE ' . implode(' AND ', $where);
@@ -125,7 +125,7 @@ require_once __DIR__ . '/../includes/header.php';
                   <td><?= $i + 1 ?></td>
                   <td><strong><?= h($row['request_number']) ?></strong></td>
                   <td><?= h(date('d-m-Y', strtotime($row['submission_date']))) ?></td>
-                  <td><?= h($row['submitter_name']) ?></td>
+                  <td><?= h($row['full_name']) ?></td>
                   <td><?= h($row['from_department']) ?></td>
                   <td><?= h($row['from_division'] ?? '-') ?></td>
                   <td><?= h($row['change_category'] ?? '-') ?></td>
