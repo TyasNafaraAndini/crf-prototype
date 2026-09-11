@@ -95,6 +95,18 @@ $budgetAmount = ($budgetTypeRaw !== null && $budgetAmountRaw !== '' && is_numeri
     ? (float) $budgetAmountRaw
     : null;
 
+if ($budgetTypeRaw === null || $budgetTypeRaw === '') {
+    $errors[] = 'Biaya / Anggaran belum dipilih.';
+}
+
+if (
+    $budgetTypeRaw !== null &&
+    $budgetTypeRaw !== '' &&
+    ($budgetAmountRaw === '' || !is_numeric($budgetAmountRaw))
+) {
+    $errors[] = 'Nominal Biaya / Anggaran belum diisi.';
+}
+
 if ($errors) {
     // Simpan kembali isian form agar tetap muncul saat halaman dimuat ulang.
     $_SESSION['old_crf'] = $_POST;
