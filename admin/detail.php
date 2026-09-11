@@ -58,7 +58,7 @@ require_once __DIR__ . '/../includes/header.php';
       </div>
       <div class="d-flex gap-2">
         <a href="dashboard.php" class="btn btn-crf-outline"><i class="bi bi-arrow-left"></i> Dashboard</a>
-        <a href="edit.php?id=<?= (int) $crf['id'] ?>" class="btn btn-crf-primary"><i class="bi bi-gear"></i> Kelola CRF</a>
+        <!-- <a href="edit.php?id=<?= (int) $crf['id'] ?>" class="btn btn-crf-primary"><i class="bi bi-gear"></i> Kelola CRF</a> -->
       </div>
     </div>
 

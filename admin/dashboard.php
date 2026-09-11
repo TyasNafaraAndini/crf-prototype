@@ -140,9 +140,21 @@ require_once __DIR__ . '/../includes/header.php';
                     </span>
                   </td>
                   <td>
-                    <a href="detail.php?id=<?= (int) $row['id'] ?>" class="btn btn-sm btn-crf-outline">
-                      <i class="bi bi-eye"></i> Detail
-                    </a>
+                    <div class="d-flex gap-1">
+                      <a
+                        href="detail.php?id=<?= (int) $row['id'] ?>"
+                        class="btn btn-sm btn-crf-outline"
+                      >
+                        <i class="bi bi-eye"></i> Detail
+                      </a>
+
+                      <a
+                        href="edit.php?id=<?= (int) $row['id'] ?>"
+                        class="btn btn-sm btn-crf-primary"
+                      >
+                        <i class="bi bi-gear"></i> Edit
+                      </a>
+                    </div>
                   </td>
                 </tr>
               <?php endforeach; ?>
