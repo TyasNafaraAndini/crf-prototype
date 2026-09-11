@@ -203,7 +203,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                   <div class="d-flex gap-1 flex-shrink-0">
                     <a
-                      href="../<?= h($file['file_path']) ?>"
+                      href="<?= h($file['file_path']) ?>"
                       target="_blank"
                       rel="noopener"
                       class="btn btn-sm btn-crf-outline py-1 px-2"
@@ -213,8 +213,7 @@ require_once __DIR__ . '/../includes/header.php';
                     </a>
 
                     <a
-                      href="../<?= h($file['file_path']) ?>"
-                      download="<?= h($file['original_name']) ?>"
+                      href="../actions/download_attachment.php?id=<?= (int) $file['id'] ?>"
                       class="btn btn-sm btn-crf-primary py-1 px-2"
                     >
                       <i class="bi bi-download"></i>

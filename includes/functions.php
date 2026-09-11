@@ -1,4 +1,10 @@
 <?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Aws\S3\S3Client;
+use Aws\Exception\AwsException;
+
 /**
  * includes/functions.php
  * ---------------------------------------------------------------
@@ -162,63 +168,130 @@ function handleAttachmentUploads(PDO $pdo, int $crfId, array $filesInput): array
     $errors = [];
 
     if (empty($filesInput['name']) || empty($filesInput['name'][0])) {
-        return $errors; // Upload bersifat opsional.
+        return $errors;
     }
 
-    $uploadDir = __DIR__ . '/../uploads/';
+    // Ambil konfigurasi Wasabi
+    $wasabiConfig = require __DIR__ . '/../config/wasabi.php';
+
+    // Inisialisasi S3 Client
+    $s3Client = new S3Client([
+        'version' => $wasabiConfig['version'],
+        'region' => $wasabiConfig['region'],
+        'endpoint' => $wasabiConfig['endpoint'],
+        'credentials' => $wasabiConfig['credentials'],
+        'use_path_style_endpoint' => $wasabiConfig['use_path_style_endpoint'],
+    ]);
+
+    $bucket = $wasabiConfig['bucket'];
+    $uploadPath = rtrim($wasabiConfig['upload_path'], '/') . '/';
+
     $total = count($filesInput['name']);
 
     for ($i = 0; $i < $total; $i++) {
+
         if ($filesInput['error'][$i] === UPLOAD_ERR_NO_FILE) {
             continue;
         }
+
         if ($filesInput['error'][$i] !== UPLOAD_ERR_OK) {
             $errors[] = 'Gagal mengupload file "' . $filesInput['name'][$i] . '".';
             continue;
         }
 
         $originalName = basename($filesInput['name'][$i]);
-        $tmpPath      = $filesInput['tmp_name'][$i];
-        $size         = (int) $filesInput['size'][$i];
+        $tmpPath = $filesInput['tmp_name'][$i];
+        $size = (int) $filesInput['size'][$i];
 
         $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
+        // Validasi extension
         if (!in_array($ext, CRF_ALLOWED_EXTENSIONS, true)) {
             $errors[] = 'Jenis file "' . $originalName . '" tidak diizinkan.';
             continue;
         }
 
+        // Validasi ukuran
         if ($size > CRF_MAX_FILE_SIZE) {
             $errors[] = 'File "' . $originalName . '" melebihi batas ukuran 5 MB.';
             continue;
         }
 
-        $mimeType = function_exists('mime_content_type') ? mime_content_type($tmpPath) : null;
-        if ($mimeType !== null && $mimeType !== false && !in_array($mimeType, CRF_ALLOWED_MIME_TYPES, true)) {
+        // Validasi MIME type
+        $mimeType = function_exists('mime_content_type')
+            ? mime_content_type($tmpPath)
+            : null;
+
+        if (
+            $mimeType !== null &&
+            $mimeType !== false &&
+            !in_array($mimeType, CRF_ALLOWED_MIME_TYPES, true)
+        ) {
             $errors[] = 'Format file "' . $originalName . '" tidak valid.';
             continue;
         }
 
-        $storedName  = uniqid('crf_' . $crfId . '_', true) . '.' . $ext;
-        $destination = $uploadDir . $storedName;
+        // Buat nama file unik
+        $storedName = uniqid('crf_' . $crfId . '_', true) . '.' . $ext;
 
-        if (!move_uploaded_file($tmpPath, $destination)) {
-            $errors[] = 'Gagal menyimpan file "' . $originalName . '".';
+        // Path file di Wasabi
+        $key = $uploadPath . $storedName;
+
+        try {
+
+            // Upload file ke Wasabi
+            $result = $s3Client->putObject([
+                'Bucket' => $bucket,
+                'Key' => $key,
+                'SourceFile' => $tmpPath,
+                'ACL' => 'public-read',
+                'ContentType' => $mimeType ?: 'application/octet-stream',
+            ]);
+
+            // URL file di Wasabi
+            $fileUrl = $result['ObjectURL'];
+
+            // Simpan informasi file ke database
+            $stmt = $pdo->prepare(
+                'INSERT INTO attachments
+                (
+                    change_request_id,
+                    original_name,
+                    stored_name,
+                    file_path,
+                    file_type,
+                    file_size
+                )
+                VALUES
+                (
+                    :crf_id,
+                    :original_name,
+                    :stored_name,
+                    :file_path,
+                    :file_type,
+                    :file_size
+                )'
+            );
+
+            $stmt->execute([
+                'crf_id' => $crfId,
+                'original_name' => $originalName,
+                'stored_name' => $storedName,
+                'file_path' => $fileUrl,
+                'file_type' => $mimeType ?: null,
+                'file_size' => $size,
+            ]);
+
+        } catch (AwsException $e) {
+
+            $errors[] =
+                'Gagal mengupload file "' .
+                $originalName .
+                '" ke Wasabi: ' .
+                $e->getMessage();
+
             continue;
         }
-
-        $stmt = $pdo->prepare(
-            'INSERT INTO attachments (change_request_id, original_name, stored_name, file_path, file_type, file_size)
-             VALUES (:crf_id, :original_name, :stored_name, :file_path, :file_type, :file_size)'
-        );
-        $stmt->execute([
-            'crf_id'        => $crfId,
-            'original_name' => $originalName,
-            'stored_name'   => $storedName,
-            'file_path'     => 'uploads/' . $storedName,
-            'file_type'     => $mimeType ?: null,
-            'file_size'     => $size,
-        ]);
     }
 
     return $errors;
