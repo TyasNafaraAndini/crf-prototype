@@ -4,7 +4,8 @@
  * ---------------------------------------------------------------
  * Menangani penyimpanan dari admin/edit.php:
  *   - Level Complain (Kecil / Sedang / Tinggi)
- *   - Status (Dalam Proses / Solve / Cancel) - lihat brief butir 23
+ *   - Status (Belum Ditindak Lanjuti / Dalam Proses / Solve / Cancel) - lihat brief butir 23
+ *   - Tanggapan / Tindak Lanjut
  *   - Post Implementation Review
  *   - Implementasi
  *
@@ -13,8 +14,8 @@
  *     (kalau belum pernah diisi sebelumnya).
  *   - Saat status berubah menjadi Cancel -> cancelled_at diisi waktu saat itu
  *     (kalau belum pernah diisi sebelumnya).
- *   - Saat status dikembalikan ke "Dalam Proses" -> kedua timestamp
- *     dikosongkan lagi karena pengajuan aktif kembali.
+ *   - Saat status menjadi belum Ditindak Lanjuti atau Dalam Proses 
+ *    -> solved_at dan cancelled_at dikosongkan.
  * ---------------------------------------------------------------
  */
 
@@ -31,11 +32,12 @@ $pdo = getConnection();
 $id                  = (int) ($_POST['id'] ?? 0);
 $levelRaw            = $_POST['level'] ?? '';
 $statusRaw           = $_POST['status'] ?? '';
+$tanggapan           = trim($_POST['tanggapan_tindak_lanjut'] ?? '');
 $postImplementation  = trim($_POST['post_implementation_review'] ?? '');
 $implementation      = trim($_POST['implementation'] ?? '');
 
 $allowedLevels  = ['Kecil', 'Sedang', 'Tinggi'];
-$allowedStatuses = ['Dalam Proses', 'Solve', 'Cancel'];
+$allowedStatuses = [ 'Belum Ditindak Lanjuti', 'Dalam Proses', 'Solve', 'Cancel'];
 
 $level  = in_array($levelRaw, $allowedLevels, true) ? $levelRaw : null;
 $status = in_array($statusRaw, $allowedStatuses, true) ? $statusRaw : null;
@@ -61,9 +63,14 @@ $cancelledAt = $current['cancelled_at'];
 
 if ($status === 'Solve') {
     $solvedAt = $solvedAt ?? (new DateTime())->format('Y-m-d H:i:s');
+    $cancelledAt = null;
 } elseif ($status === 'Cancel') {
     $cancelledAt = $cancelledAt ?? (new DateTime())->format('Y-m-d H:i:s');
-} elseif ($status === 'Dalam Proses') {
+    $solvedAt = null;
+} elseif (
+    $status === 'Dalam Proses' ||
+    $status === 'Belum Ditindak Lanjuti'
+) {
     $solvedAt = null;
     $cancelledAt = null;
 }
@@ -73,6 +80,7 @@ try {
         'UPDATE change_requests
          SET level = :level,
              status = :status,
+             tanggapan_tindak_lanjut = :tanggapan,
              solved_at = :solved_at,
              cancelled_at = :cancelled_at,
              post_implementation_review = :pir,
@@ -82,6 +90,7 @@ try {
     $stmt->execute([
         'level'          => $level,
         'status'         => $status,
+        'tanggapan'      => $tanggapan !== '' ? $tanggapan : null,
         'solved_at'      => $solvedAt,
         'cancelled_at'   => $cancelledAt,
         'pir'            => $postImplementation !== '' ? $postImplementation : null,

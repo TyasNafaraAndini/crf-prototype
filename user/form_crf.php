@@ -320,7 +320,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="crf-section-body">
           <p class="crf-hint">
             Proses evaluasi yang dilakukan setelah perubahan dilakukan sebelum perubahan tersebut diterapkan.
-            <strong>Tidak wajib diisi saat pengajuan pertama</strong> - bagian ini biasanya dilengkapi oleh admin setelah proses berjalan.
+            <!-- <strong>Tidak wajib diisi saat pengajuan pertama</strong> - bagian ini biasanya dilengkapi oleh admin setelah proses berjalan. -->
           </p>
           <textarea class="form-control" id="post_implementation_review" name="post_implementation_review"><?= h($old['post_implementation_review'] ?? '') ?></textarea>
         </div>
@@ -337,7 +337,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="crf-section-body">
           <p class="crf-hint">
             Pelaksanaan yang telah dilakukan atas perubahan yang telah disampaikan.
-            <strong>Tidak wajib diisi saat pengajuan pertama.</strong>
+            <!-- <strong>Tidak wajib diisi saat pengajuan pertama.</strong> -->
           </p>
           <textarea class="form-control" id="implementation" name="implementation"><?= h($old['implementation'] ?? '') ?></textarea>
         </div>

@@ -115,16 +115,23 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="crf-section-body">
           <select name="status" id="status" class="form-select" style="max-width: 260px;">
-            <option value="Dalam Proses" <?= $crf['status'] === 'Dalam Proses' ? 'selected' : '' ?>>Dalam Proses</option>
-            <option value="Solve" <?= $crf['status'] === 'Solve' ? 'selected' : '' ?>>Solve (Selesai)</option>
-            <option value="Cancel" <?= $crf['status'] === 'Cancel' ? 'selected' : '' ?>>Cancel (Dibatalkan)</option>
+            <option value="Belum Ditindak Lanjuti" <?= $crf['status'] === 'Belum Ditindak Lanjuti' ? 'selected' : '' ?>>
+              Belum Ditindak Lanjuti
+            </option>
+
+            <option value="Dalam Proses" <?= $crf['status'] === 'Dalam Proses' ? 'selected' : '' ?>>
+              Dalam Proses
+            </option>
+
+            <option value="Solve" <?= $crf['status'] === 'Solve' ? 'selected' : '' ?>>
+              Solve (Selesai)
+            </option>
+
+            <option value="Cancel" <?= $crf['status'] === 'Cancel' ? 'selected' : '' ?>>
+              Cancel (Dibatalkan)
+            </option>
           </select>
-          <?php if ($crf['status'] === 'Draft'): ?>
-            <div class="crf-readonly-note mt-2">
-              <i class="bi bi-info-circle"></i>
-              CRF ini masih berstatus Draft (belum di-submit oleh pengaju). Memilih status di atas akan memindahkannya keluar dari Draft.
-            </div>
-          <?php endif; ?>
+          
           <?php if ($crf['status'] === 'Solve' && $crf['solved_at']): ?>
             <div class="crf-readonly-note mt-2">Ditandai Solve pada: <?= h(date('d-m-Y H:i', strtotime($crf['solved_at']))) ?></div>
           <?php endif; ?>
@@ -134,12 +141,36 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
       </div>
 
+            <div class="crf-section">
+        <div class="crf-section-header">
+          <span class="crf-section-number"><i class="bi bi-chat-left-text"></i></span>
+          <h2>Tanggapan / Tindak Lanjut</h2>
+        </div>
+
+        <div class="crf-section-body">
+          <p class="crf-hint">
+            Tanggapan atau tindak lanjut yang diberikan oleh admin terkait pengajuan CRF.
+          </p>
+
+          <textarea
+            name="tanggapan_tindak_lanjut"
+            id="tanggapan_tindak_lanjut"
+            class="form-control"
+            rows="4"
+          ><?= h($crf['tanggapan_tindak_lanjut'] ?? '') ?></textarea>
+        </div>
+      </div>
+
       <div class="crf-section">
         <div class="crf-section-header">
           <span class="crf-section-number">7</span>
           <h2>Post Implementation Review</h2>
         </div>
         <div class="crf-section-body">
+          <p class="crf-hint">
+            Proses evaluasi yang dilakukan setelah perubahan dilakukan sebelum perubahan tersebut diterapkan.
+            <!-- <strong>Tidak wajib diisi saat pengajuan pertama</strong> - bagian ini biasanya dilengkapi oleh admin setelah proses berjalan. -->
+          </p>
           <textarea name="post_implementation_review" class="form-control"><?= h($crf['post_implementation_review'] ?? '') ?></textarea>
         </div>
       </div>
@@ -150,6 +181,10 @@ require_once __DIR__ . '/../includes/header.php';
           <h2>Implementasi</h2>
         </div>
         <div class="crf-section-body">
+          <p class="crf-hint">
+            Pelaksanaan yang telah dilakukan atas perubahan yang telah disampaikan.
+            <!-- <strong>Tidak wajib diisi saat pengajuan pertama.</strong> -->
+          </p>
           <textarea name="implementation" class="form-control"><?= h($crf['implementation'] ?? '') ?></textarea>
         </div>
       </div>
