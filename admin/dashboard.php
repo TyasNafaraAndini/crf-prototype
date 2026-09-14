@@ -49,6 +49,17 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $requests = $stmt->fetchAll();
 
+$summaryStmt = $pdo->query(
+    "SELECT
+        COUNT(*) AS total,
+        SUM(status = 'Belum Ditindak Lanjuti') AS pending,
+        SUM(status = 'Dalam Proses') AS processing,
+        SUM(status = 'Solve') AS solved,
+        SUM(status = 'Cancel') AS cancelled
+     FROM change_requests"
+);
+$summary = $summaryStmt->fetch() ?: [];
+
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
@@ -60,8 +71,16 @@ require_once __DIR__ . '/../includes/header.php';
   <div class="container">
 
     <div class="crf-page-header">
-      <h1>Dashboard Admin</h1>
-      <p>Daftar seluruh pengajuan Change Request Form (CRF).</p>
+      <h1>Dashboard Change Request Form</h1>
+      <p>Ringkasan pengajuan Change Request milik Anda</p>
+    </div>
+
+    <div class="crf-stat-grid">
+      <div class="crf-stat-card"><span>Total Pengajuan</span><strong><?= (int) ($summary['total'] ?? 0) ?></strong></div>
+      <div class="crf-stat-card"><span>Belum Ditindak Lanjuti</span><strong><?= (int) ($summary['pending'] ?? 0) ?></strong></div>
+      <div class="crf-stat-card"><span>Dalam Proses</span><strong><?= (int) ($summary['processing'] ?? 0) ?></strong></div>
+      <div class="crf-stat-card"><span>Selesai</span><strong><?= (int) ($summary['solved'] ?? 0) ?></strong></div>
+      <div class="crf-stat-card"><span>Dibatalkan</span><strong><?= (int) ($summary['cancelled'] ?? 0) ?></strong></div>
     </div>
 
     <?php if ($flash): ?>
@@ -71,6 +90,10 @@ require_once __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 
     <div class="crf-table-card">
+      <div class="crf-table-heading">
+        <h2>Pengajuan Terbaru</h2>
+        <a href="dashboard.php" class="btn btn-sm btn-crf-outline">Lihat Semua</a>
+      </div>
 
       <form method="GET" class="row g-2 mb-3">
         <div class="col-md-5">
