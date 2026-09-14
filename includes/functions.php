@@ -97,7 +97,7 @@ function budgetTypeLabel(?string $key): string
 
 /**
  * Label tampilan Status. Solve/Cancel ditampilkan sebagai
- * "Selesai" / "Dibatalkan" sesuai brief butir 23.
+ * "Selesai" / "Dibatalkan" 
  */
 function statusLabel(string $status): string
 {
@@ -107,23 +107,27 @@ function statusLabel(string $status): string
         case 'Cancel':
             return 'Dibatalkan';
         default:
-            return $status; // Draft, Dalam Proses
+            return $status; 
     }
 }
 
 function statusBadgeClass(string $status): string
 {
     switch ($status) {
-        case 'Draft':
-            return 'badge-status-draft';
+        case 'Belum Ditindak Lanjuti':
+            return 'badge-status-belum';
+
         case 'Dalam Proses':
             return 'badge-status-proses';
+
         case 'Solve':
             return 'badge-status-solve';
+
         case 'Cancel':
             return 'badge-status-cancel';
+
         default:
-            return 'badge-status-draft';
+            return 'badge-status-belum';
     }
 }
 

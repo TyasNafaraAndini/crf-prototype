@@ -57,8 +57,19 @@ require_once __DIR__ . '/../includes/header.php';
         <p>Nomor Register: <strong><?= h($crf['request_number']) ?></strong></p>
       </div>
       <div class="d-flex gap-2">
-        <a href="dashboard.php" class="btn btn-crf-outline"><i class="bi bi-arrow-left"></i> Dashboard</a>
-        <!-- <a href="edit.php?id=<?= (int) $crf['id'] ?>" class="btn btn-crf-primary"><i class="bi bi-gear"></i> Kelola CRF</a> -->
+        <a
+          href="../actions/export_crf.php?id=<?= (int) $crf['id'] ?>"
+          class="btn btn-crf-primary"
+        >
+          <i class="bi bi-file-earmark-pdf"></i> Export PDF
+        </a>
+
+        <a
+          href="dashboard.php"
+          class="btn btn-crf-outline"
+        >
+          <i class="bi bi-arrow-left"></i> Dashboard
+        </a>
       </div>
     </div>
 
@@ -77,6 +88,40 @@ require_once __DIR__ . '/../includes/header.php';
       </span>
     </div>
 
+    <?php if ($crf['status'] === 'Solve' && $crf['solved_at']): ?>
+      <div class="crf-readonly-note mb-3">
+        <i class="bi bi-check-circle"></i>
+        Diselesaikan pada:
+        <?= h(date('d-m-Y H:i', strtotime($crf['solved_at']))) ?>
+      </div>
+    <?php endif; ?>
+
+    <?php if ($crf['status'] === 'Cancel' && $crf['cancelled_at']): ?>
+      <div class="crf-readonly-note mb-3">
+        <i class="bi bi-x-circle"></i>
+        Dibatalkan pada:
+        <?= h(date('d-m-Y H:i', strtotime($crf['cancelled_at']))) ?>
+      </div>
+    <?php endif; ?>
+
+    <!-- Tanggapan / Tindak Lanjut -->
+    <div class="crf-section mb-4">
+      <div class="crf-section-header">
+        <span class="crf-section-number">
+          <i class="bi bi-chat-left-text"></i>
+        </span>
+        <h2>Tanggapan / Tindak Lanjut</h2>
+      </div>
+
+      <div class="crf-section-body">
+        <div class="crf-detail-value mb-0">
+          <?= !empty($crf['tanggapan_tindak_lanjut'])
+              ? nl2br(h($crf['tanggapan_tindak_lanjut']))
+              : '<span class="text-muted">Belum ada tanggapan atau tindak lanjut.</span>' ?>
+        </div>
+      </div>
+    </div>
+
     <!-- Informasi Pengajuan -->
     <div class="crf-detail-section">
     <div class="crf-section-header">
@@ -88,32 +133,39 @@ require_once __DIR__ . '/../includes/header.php';
 
         <!-- DATA PENGAJU -->
         <div class="row g-4 mb-4">
-            <div class="col-md-4">
+
+            <div class="col-md-3">
                 <div class="crf-detail-label">PENGAJU</div>
                 <div class="crf-detail-value">
                     <?= h($crf['full_name']) ?>
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="crf-detail-label">EMAIL</div>
                 <div class="crf-detail-value">
                     <?= h($crf['email'] ?? '-') ?>
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="crf-detail-label">NO. HP/WA</div>
                 <div class="crf-detail-value">
                     <?= h($crf['phone'] ?? '-') ?>
                 </div>
             </div>
+
+            <div class="col-md-3">
+                <!-- Kolom kosong agar posisi sejajar dengan baris kedua -->
+            </div>
+
         </div>
 
         <hr>
 
         <!-- INFORMASI CRF -->
         <div class="row g-4 mt-1">
+
             <div class="col-md-3">
                 <div class="crf-detail-label">HARI/TANGGAL</div>
                 <div class="crf-detail-value">
@@ -147,6 +199,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                 </div>
             </div>
+
         </div>
 
     </div>

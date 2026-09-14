@@ -167,11 +167,11 @@ document.addEventListener('DOMContentLoaded', function () {
     checkField('reason', 'Alasan Permohonan Perubahan');
 
     // Bukti pendukung
-    const attachments = document.getElementById('attachments');
+    // const attachments = document.getElementById('attachments');
 
-    if (!attachments || attachments.files.length === 0) {
-      errors.push('Bukti dan Informasi Pendukung');
-    }
+    // if (!attachments || attachments.files.length === 0) {
+    //   errors.push('Bukti dan Informasi Pendukung');
+    // }
 
         // Biaya / Anggaran
     const budgetType = document.querySelector(

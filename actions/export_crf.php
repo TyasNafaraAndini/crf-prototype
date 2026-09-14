@@ -1,0 +1,623 @@
+<?php
+/**
+ * actions/export_crf.php
+ * ---------------------------------------------------------------
+ * Export satu CRF menjadi PDF menggunakan Dompdf.
+ * Tampilan dibuat menyerupai dokumen CRF perusahaan.
+ * ---------------------------------------------------------------
+ */
+
+require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
+$pdo = getConnection();
+
+$id = (int) ($_GET['id'] ?? 0);
+
+if ($id <= 0) {
+    http_response_code(400);
+    exit('ID CRF tidak valid.');
+}
+
+/* ---------------------------------------------------------------
+ * Ambil data CRF
+ * --------------------------------------------------------------- */
+$stmt = $pdo->prepare(
+    'SELECT cr.*
+     FROM change_requests cr
+     WHERE cr.id = :id
+     LIMIT 1'
+);
+
+$stmt->execute(['id' => $id]);
+$crf = $stmt->fetch();
+
+if (!$crf) {
+    http_response_code(404);
+    exit('CRF tidak ditemukan.');
+}
+
+/* ---------------------------------------------------------------
+ * Ambil attachment
+ * --------------------------------------------------------------- */
+$attStmt = $pdo->prepare(
+    'SELECT original_name, file_type, file_size
+     FROM attachments
+     WHERE change_request_id = :id
+     ORDER BY uploaded_at ASC'
+);
+
+$attStmt->execute(['id' => $id]);
+$attachments = $attStmt->fetchAll();
+
+/* ---------------------------------------------------------------
+ * Helper
+ * --------------------------------------------------------------- */
+function pdfText($value): string
+{
+    return nl2br(
+        htmlspecialchars(
+            trim((string) ($value ?? '')),
+            ENT_QUOTES,
+            'UTF-8'
+        )
+    );
+}
+
+function pdfValue($value): string
+{
+    $value = trim((string) ($value ?? ''));
+
+    if ($value === '') {
+        return '-';
+    }
+
+    return pdfText($value);
+}
+
+/* ---------------------------------------------------------------
+ * Data tampilan
+ * --------------------------------------------------------------- */
+$submissionDate = !empty($crf['submission_date'])
+    ? formatTanggalIndonesia(new DateTime($crf['submission_date']))
+    : '-';
+
+$toValue = trim(
+    ($crf['to_department'] ?? '') .
+    (!empty($crf['to_division']) ? ' (' . $crf['to_division'] . ')' : '')
+);
+
+$fromValue = trim(
+    ($crf['from_department'] ?? '') .
+    (!empty($crf['from_division']) ? ' (' . $crf['from_division'] . ')' : '')
+);
+
+$statusDisplay = statusLabel($crf['status'] ?? '');
+
+$categoryDisplay = $crf['change_category'] ?? '-';
+
+if (!empty($crf['change_category_detail'])) {
+    $categoryDisplay .= ' - ' . $crf['change_category_detail'];
+}
+
+$budgetDisplay = budgetTypeLabel($crf['budget_type'] ?? null);
+
+if ($crf['budget_amount'] !== null && $crf['budget_amount'] !== '') {
+    $budgetDisplay .= ' - ' . formatRupiah($crf['budget_amount']);
+}
+
+/* ---------------------------------------------------------------
+ * Daftar attachment
+ * --------------------------------------------------------------- */
+$attachmentHtml = '';
+
+if (!$attachments) {
+
+    $attachmentHtml = '<span class="muted">Tidak ada file yang dilampirkan.</span>';
+
+} else {
+
+    $items = [];
+
+    foreach ($attachments as $file) {
+        $name = htmlspecialchars(
+            $file['original_name'],
+            ENT_QUOTES,
+            'UTF-8'
+        );
+
+        $size = round(((int) $file['file_size']) / 1024);
+
+        $items[] = $name . ' (' . $size . ' KB)';
+    }
+
+    $attachmentHtml = implode('<br>', $items);
+}
+
+/* ---------------------------------------------------------------
+ * Level complain
+ * --------------------------------------------------------------- */
+$levelDisplay = !empty($crf['level'])
+    ? $crf['level']
+    : 'Belum ditentukan';
+
+/* ---------------------------------------------------------------
+ * Tanggal Solve / Cancel
+ * --------------------------------------------------------------- */
+$processDateHtml = '';
+
+if (
+    ($crf['status'] ?? '') === 'Solve' &&
+    !empty($crf['solved_at'])
+) {
+    $processDateHtml = '
+        <div class="process-date">
+            Diselesaikan pada:
+            ' . htmlspecialchars(
+                date('d-m-Y H:i', strtotime($crf['solved_at'])),
+                ENT_QUOTES,
+                'UTF-8'
+            ) . '
+        </div>
+    ';
+}
+
+if (
+    ($crf['status'] ?? '') === 'Cancel' &&
+    !empty($crf['cancelled_at'])
+) {
+    $processDateHtml = '
+        <div class="process-date">
+            Dibatalkan pada:
+            ' . htmlspecialchars(
+                date('d-m-Y H:i', strtotime($crf['cancelled_at'])),
+                ENT_QUOTES,
+                'UTF-8'
+            ) . '
+        </div>
+    ';
+}
+
+/* ---------------------------------------------------------------
+ * HTML PDF
+ * --------------------------------------------------------------- */
+$html = '
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+
+    <style>
+
+        @page {
+            margin: 25px 28px 25px 28px;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10px;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .info-table td {
+            border: 1px solid #000;
+            padding: 7px;
+            vertical-align: top;
+        }
+
+        .info-label {
+            width: 24%;
+            font-weight: bold;
+        }
+
+        .info-value {
+            width: 76%;
+        }
+
+        .section-title {
+            margin-top: 7px;
+            margin-bottom: 0;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .form-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .form-table td {
+            border: 1px solid #000;
+            padding: 7px;
+            vertical-align: top;
+        }
+
+        .form-label {
+            width: 24%;
+            font-weight: bold;
+        }
+
+        .form-content {
+            width: 76%;
+            min-height: 45px;
+        }
+
+        .large-content {
+            min-height: 70px;
+        }
+
+        .attachment {
+            line-height: 1.5;
+        }
+
+        .muted {
+            color: #555;
+        }
+
+        .budget-row td {
+            padding: 5px 7px;
+        }
+
+        .check {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 11px;
+        }
+
+        .status-box {
+            margin-top: 10px;
+            border: 1px solid #000;
+            padding: 7px;
+        }
+
+        .process-date {
+            margin-top: 4px;
+            font-size: 9px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .signature-table {
+            margin-top: 45px;
+        }
+
+        .signature-table td {
+            border: 1px solid #000;
+            height: 85px;
+            padding: 7px;
+            vertical-align: top;
+            text-align: center;
+        }
+
+        .signature-title {
+            font-weight: bold;
+            margin-bottom: 45px;
+        }
+
+        .footer-note {
+            margin-top: 15px;
+            font-size: 8px;
+            color: #444;
+        }
+
+        .category-table td {
+            border: 1px solid #000;
+            padding: 6px;
+            vertical-align: top;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- =========================================================
+         HALAMAN 1
+         ========================================================= -->
+
+    <div class="title">
+        CHANGE REQUEST FORM
+    </div>
+
+    <table class="info-table">
+
+        <tr>
+            <td class="info-label">Hari/Tanggal</td>
+            <td class="info-value">
+                ' . pdfValue($submissionDate) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="info-label">Kepada</td>
+            <td class="info-value">
+                ' . pdfValue($toValue) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="info-label">Dari</td>
+            <td class="info-value">
+                ' . pdfValue($fromValue) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="info-label">Nomor Register</td>
+            <td class="info-value">
+                ' . pdfValue($crf['request_number']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="info-label">Nama Lengkap</td>
+            <td class="info-value">
+                ' . pdfValue($crf['full_name']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="info-label">No. Handphone / WA</td>
+            <td class="info-value">
+                ' . pdfValue($crf['phone']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="info-label">Email</td>
+            <td class="info-value">
+                ' . pdfValue($crf['email']) . '
+            </td>
+        </tr>
+
+    </table>
+
+    <div class="section-title">
+        Change Request Description
+    </div>
+
+    <table class="form-table">
+
+        <tr>
+            <td class="form-label">
+                Rincian Permohonan Perubahan
+            </td>
+            <td class="form-content large-content">
+                ' . pdfValue($crf['change_description']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="form-label">
+                Benefit dari Perubahan yang Diharapkan
+            </td>
+            <td class="form-content large-content">
+                ' . pdfValue($crf['benefit']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="form-label">
+                Dampak Jika Tidak Dilakukan Perubahan
+            </td>
+            <td class="form-content large-content">
+                ' . pdfValue($crf['impact']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="form-label">
+                Alasan Permohonan Perubahan
+            </td>
+            <td class="form-content large-content">
+                ' . pdfValue($crf['reason']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="form-label">
+                Bukti dan Informasi Pendukung
+            </td>
+            <td class="form-content attachment">
+                ' . $attachmentHtml . '
+            </td>
+        </tr>
+
+    </table>
+
+    <div class="section-title">
+        Biaya / Anggaran
+    </div>
+
+    <table class="form-table">
+
+        <tr>
+            <td class="form-label">
+                Biaya / Anggaran
+            </td>
+
+            <td class="form-content">
+                ' . pdfValue($budgetDisplay) . '
+            </td>
+        </tr>
+
+    </table>
+
+    <!-- =========================================================
+         HALAMAN 2
+         ========================================================= -->
+
+    <div class="section-title">
+        Kategori Perubahan
+    </div>
+
+    <table class="form-table">
+
+        <tr>
+            <td class="form-label">
+                Kategori Perubahan
+            </td>
+
+            <td class="form-content">
+                ' . pdfValue($categoryDisplay) . '
+            </td>
+        </tr>
+
+    </table>
+
+    <div class="section-title">
+        Change Request Action
+    </div>
+
+    <table class="form-table">
+
+        <tr>
+            <td class="form-label">
+                Saran Alternatif
+            </td>
+
+            <td class="form-content large-content">
+                ' . pdfValue($crf['alternative_suggestion']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="form-label">
+                Tanggapan / Tindak Lanjut
+            </td>
+
+            <td class="form-content large-content">
+                ' . pdfValue($crf['tanggapan_tindak_lanjut']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="form-label">
+                Post Implementation Review
+            </td>
+
+            <td class="form-content large-content">
+                ' . pdfValue($crf['post_implementation_review']) . '
+            </td>
+        </tr>
+
+        <tr>
+            <td class="form-label">
+                Implementasi
+            </td>
+
+            <td class="form-content large-content">
+                ' . pdfValue($crf['implementation']) . '
+            </td>
+        </tr>
+
+    </table>
+
+    <div class="status-box">
+        <strong>Level Complain:</strong>
+        ' . pdfValue($levelDisplay) . '
+        &nbsp;&nbsp;&nbsp;
+        <strong>Status:</strong>
+        ' . pdfValue($statusDisplay) . '
+        ' . $processDateHtml . '
+    </div>
+
+    <table class="signature-table">
+
+        <tr>
+            <td width="33%">
+                <div class="signature-title">
+                    Yang Mengajukan
+                </div>
+
+                <div style="height: 30px;"></div>
+
+                ( ' . pdfValue($crf['full_name']) . ' )
+            </td>
+
+            <td width="33%">
+                <div class="signature-title">
+                    Mengetahui
+                </div>
+                <div style="height: 30px;"></div>
+                <div>
+                ( ........................................ )
+                </div>
+
+                <div style="margin-top: 5px; font-weight: bold;">
+                    Team CMO
+                </div>
+            </td>
+
+            <td width="34%">
+                <div class="signature-title">
+                    Departemen Operasional
+                </div>
+
+                <div style="height: 30px;"></div>
+
+                <div style="font-weight: bold; text-decoration: underline;">
+                    Joko Sri Purwoko
+                </div>
+
+                <div>
+                    Kepala Departemen
+                </div>
+            </td>
+        </tr>
+
+    </table>
+
+    <div class="footer-note">
+        Dokumen ini dihasilkan oleh sistem CRF Prototype PT Persona Prima Utama.
+    </div>
+
+</body>
+</html>
+';
+
+/* ---------------------------------------------------------------
+ * Generate PDF
+ * --------------------------------------------------------------- */
+
+$options = new Options();
+$options->set('isRemoteEnabled', true);
+$options->set('defaultFont', 'Arial');
+
+$dompdf = new Dompdf($options);
+
+$dompdf->loadHtml($html, 'UTF-8');
+$dompdf->setPaper('A4', 'portrait');
+$dompdf->render();
+
+$fileName = 'CRF-' . preg_replace(
+    '/[^A-Za-z0-9._-]/',
+    '-',
+    $crf['request_number']
+) . '.pdf';
+
+$dompdf->stream($fileName, [
+    'Attachment' => true
+]);
+
+exit;
