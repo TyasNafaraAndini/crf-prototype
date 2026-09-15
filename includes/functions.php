@@ -134,12 +134,15 @@ function statusBadgeClass(string $status): string
 function levelBadgeClass(?string $level): string
 {
     switch ($level) {
-        case 'Kecil':
-            return 'badge-level-kecil';
-        case 'Sedang':
-            return 'badge-level-sedang';
         case 'Tinggi':
             return 'badge-level-tinggi';
+
+        case 'Normal':
+            return 'badge-level-sedang';
+
+        case 'Rendah':
+            return 'badge-level-kecil';
+
         default:
             return 'badge-level-none';
     }

@@ -442,15 +442,7 @@ $html = '
                 ' . $attachmentHtml . '
             </td>
         </tr>
-
-    </table>
-
-    <div class="section-title">
-        Biaya / Anggaran
-    </div>
-
-    <table class="form-table">
-
+        
         <tr>
             <td class="form-label">
                 Biaya / Anggaran
@@ -460,18 +452,6 @@ $html = '
                 ' . pdfValue($budgetDisplay) . '
             </td>
         </tr>
-
-    </table>
-
-    <!-- =========================================================
-         HALAMAN 2
-         ========================================================= -->
-
-    <div class="section-title">
-        Kategori Perubahan
-    </div>
-
-    <table class="form-table">
 
         <tr>
             <td class="form-label">
@@ -498,16 +478,6 @@ $html = '
 
             <td class="form-content large-content">
                 ' . pdfValue($crf['alternative_suggestion']) . '
-            </td>
-        </tr>
-
-        <tr>
-            <td class="form-label">
-                Tanggapan / Tindak Lanjut
-            </td>
-
-            <td class="form-content large-content">
-                ' . pdfValue($crf['tanggapan_tindak_lanjut']) . '
             </td>
         </tr>
 
