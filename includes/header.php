@@ -34,7 +34,7 @@ $appBasePath = rtrim($appBasePath, '/');
       <span class="crf-sidebar-mark"><i class="bi bi-file-earmark-text"></i></span>
       <span>SIAP PPU</span>
     </a>
-    <div class="crf-sidebar-section">Menu Saya</div>
+    <div class="crf-sidebar-section">Menu Utama</div>
     <nav class="crf-sidebar-nav" aria-label="Navigasi utama">
       <a class="<?= $isDashboard ? 'active' : '' ?>" href="<?= h($appBasePath) ?>/admin/dashboard.php">
         <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
@@ -42,15 +42,6 @@ $appBasePath = rtrim($appBasePath, '/');
       <a class="<?= $isForm ? 'active' : '' ?>" href="<?= h($appBasePath) ?>/user/form_crf.php">
         <i class="bi bi-file-earmark-plus"></i><span>Form CRF</span>
       </a>
-      <a href="<?= h($appBasePath) ?>/admin/dashboard.php">
-        <i class="bi bi-list-check"></i><span>Pengajuan Saya</span>
-      </a>
-    </nav>
-    <div class="crf-sidebar-section">Help Desk</div>
-    <nav class="crf-sidebar-nav" aria-label="Help desk">
-      <a href="<?= h($appBasePath) ?>/user/form_crf.php"><i class="bi bi-headset"></i><span>Formulir Help Desk</span></a>
-      <a href="<?= h($appBasePath) ?>/user/form_crf.php"><i class="bi bi-arrow-repeat"></i><span>Change Request Form</span></a>
-      <a href="<?= h($appBasePath) ?>/admin/dashboard.php"><i class="bi bi-bell"></i><span>Notifikasi CRF</span></a>
     </nav>
     <div class="crf-sidebar-footer"><a href="<?= h($appBasePath) ?>/"><i class="bi bi-box-arrow-left"></i> Keluar</a></div>
   </aside>
