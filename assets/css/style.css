@@ -4,8 +4,8 @@
    ===================================================================== */
 
 :root {
-  --crf-blue-900: #2E86C1;   /* navbar - biru muda */
-  --crf-blue-700: #3498DB;   /* biru utama - tombol/aksen */
+  --crf-blue-900: #1f2a3d;
+  --crf-blue-700: #2563eb;
   --crf-blue-100: #EAF4FB;   /* biru sangat muda */
   --crf-gray-900: #333333;   /* teks utama */
   --crf-gray-600: #666666;   /* teks sekunder */
@@ -30,57 +30,56 @@ body {
   flex-direction: column;
 }
 
-/* ---------- Navbar ---------- */
-.crf-navbar {
-  background-color: var(--crf-blue-900);
-  padding: 0.85rem 0;
+/* ---------- Corporate application shell ---------- */
+.crf-app-shell { min-height: 100vh; display: flex; }
+.crf-sidebar {
+  width: 207px; flex: 0 0 207px; background: #1d2635; color: #aab4c5;
+  display: flex; flex-direction: column; min-height: 100vh;
 }
-
-.crf-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  text-decoration: none;
+.crf-sidebar-brand {
+  height: 58px; display: flex; align-items: center; gap: 0.55rem; padding: 0 1.2rem;
+  color: #fff; text-decoration: none; font-weight: 700; border-bottom: 1px solid #303b4d;
 }
-
-.crf-brand-mark {
-  background-color: var(--crf-white);
-  color: var(--crf-blue-900);
-  font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 0.03em;
-  padding: 0.3rem 0.5rem;
-  border-radius: 6px;
+.crf-sidebar-mark { color: #fff; font-size: 1rem; }
+.crf-sidebar-section { padding: 1.15rem 1.05rem 0.45rem; font-size: 0.72rem; color: #718096; }
+.crf-sidebar-nav a {
+  display: flex; gap: 0.65rem; align-items: center; padding: 0.58rem 1.05rem;
+  color: #9aa7ba; text-decoration: none; font-size: 0.79rem;
 }
-
-.crf-brand-text {
-  color: var(--crf-white);
-  font-weight: 600;
-  font-size: 1rem;
+.crf-sidebar-nav a:hover, .crf-sidebar-nav a.active { color: #fff; background: #2a3850; }
+.crf-sidebar-nav a.active { border-right: 3px solid #3b82f6; }
+.crf-sidebar-footer { margin-top: auto; padding: 1rem 1.05rem; border-top: 1px solid #303b4d; }
+.crf-sidebar-footer a { color: #f87171; text-decoration: none; font-size: 0.78rem; }
+.crf-content-shell { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.crf-topbar {
+  height: 58px; background: #27344a; color: #fff; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 1.35rem;
 }
-
-.crf-navbar .nav-link {
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 0.92rem;
-}
-
-.crf-navbar .nav-link:hover,
-.crf-navbar .nav-link.active {
-  color: var(--crf-white);
+.crf-breadcrumb { display: flex; align-items: center; gap: 0.65rem; font-size: 0.76rem; }
+.crf-breadcrumb strong { font-size: 0.9rem; }
+.crf-breadcrumb span { color: #ced6e3; }
+.crf-breadcrumb i { color: #8493aa; font-size: 0.65rem; }
+.crf-user { display: flex; align-items: center; gap: 0.65rem; text-align: right; font-size: 0.74rem; }
+.crf-user small { display: block; color: #c5cfde; font-size: 0.63rem; }
+.crf-avatar { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: #53627d; font-size: 0.72rem; }
+.crf-content-shell > .crf-footer { margin-top: auto; }
+.crf-navbar { display: none; }
+.crf-brand, .crf-brand-mark, .crf-brand-text { display: none; }
 }
 
 /* ---------- Layout wrapper ---------- */
 .crf-page {
   flex: 1;
-  padding: 2.25rem 0 3rem;
+  padding: 1.75rem 1.6rem 2.5rem;
 }
+.crf-page > .container { max-width: none; padding: 0; }
 
 .crf-page-header {
   margin-bottom: 1.75rem;
 }
 
 .crf-page-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--crf-blue-900);
   margin-bottom: 0.25rem;
@@ -218,6 +217,17 @@ textarea.form-control {
   border-radius: var(--crf-radius);
   padding: 1.4rem;
 }
+.crf-stat-grid {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.6rem;
+}
+.crf-stat-card {
+  background: var(--crf-white); border: 1px solid #dfe3e8; border-radius: 9px;
+  padding: 1rem 1.15rem; min-height: 80px;
+}
+.crf-stat-card span { display: block; color: #52627a; font-size: 0.73rem; margin-bottom: 0.45rem; }
+.crf-stat-card strong { color: #172b4d; font-size: 1.4rem; line-height: 1; }
+.crf-table-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+.crf-table-heading h2 { color: #172b4d; font-size: 1rem; font-weight: 700; margin: 0; }
 
 .crf-table thead th {
   font-size: 0.78rem;
@@ -249,10 +259,21 @@ textarea.form-control {
 
 /* ---------- Footer ---------- */
 .crf-footer {
-  padding: 1.25rem 0;
+  padding: 0.9rem 1.6rem;
   color: var(--crf-gray-600);
   font-size: 0.82rem;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  .crf-sidebar { width: 58px; flex-basis: 58px; }
+  .crf-sidebar-brand { padding: 0; justify-content: center; }
+  .crf-sidebar-brand > span:last-child, .crf-sidebar-section, .crf-sidebar-nav span, .crf-sidebar-footer a { display: none; }
+  .crf-sidebar-nav a { justify-content: center; padding: 0.75rem 0; }
+  .crf-sidebar-footer { padding: 1rem 0; text-align: center; }
+  .crf-breadcrumb span:last-child { display: none; }
+  .crf-page { padding: 1.25rem 0.9rem 2rem; }
+  .crf-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ---------- Alerts spacing ---------- */
