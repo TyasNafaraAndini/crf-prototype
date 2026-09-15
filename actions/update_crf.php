@@ -3,7 +3,7 @@
  * actions/update_crf.php
  * ---------------------------------------------------------------
  * Menangani penyimpanan dari admin/edit.php:
- *   - Level Complain (Kecil / Sedang / Tinggi)
+ *   - Level Complain (Tinggi / Normal / Rendah)
  *   - Status (Belum Ditindak Lanjuti / Dalam Proses / Solve / Cancel) - lihat brief butir 23
  *   - Tanggapan / Tindak Lanjut
  *   - Post Implementation Review
@@ -36,7 +36,7 @@ $tanggapan           = trim($_POST['tanggapan_tindak_lanjut'] ?? '');
 $postImplementation  = trim($_POST['post_implementation_review'] ?? '');
 $implementation      = trim($_POST['implementation'] ?? '');
 
-$allowedLevels  = ['Kecil', 'Sedang', 'Tinggi'];
+$allowedLevels  = ['Tinggi', 'Normal', 'Rendah'];
 $allowedStatuses = [ 'Belum Ditindak Lanjuti', 'Dalam Proses', 'Solve', 'Cancel'];
 
 $level  = in_array($levelRaw, $allowedLevels, true) ? $levelRaw : null;

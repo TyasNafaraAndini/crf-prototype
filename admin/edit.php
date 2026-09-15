@@ -101,9 +101,9 @@ require_once __DIR__ . '/../includes/header.php';
           </p>
           <select name="level" class="form-select" style="max-width: 260px;">
             <option value="" <?= $crf['level'] === null ? 'selected' : '' ?>>Belum ditentukan</option>
-            <option value="Kecil" <?= $crf['level'] === 'Kecil' ? 'selected' : '' ?>>Kecil</option>
-            <option value="Sedang" <?= $crf['level'] === 'Sedang' ? 'selected' : '' ?>>Sedang</option>
             <option value="Tinggi" <?= $crf['level'] === 'Tinggi' ? 'selected' : '' ?>>Tinggi</option>
+            <option value="Normal" <?= $crf['level'] === 'Normal' ? 'selected' : '' ?>>Normal</option>
+            <option value="Rendah" <?= $crf['level'] === 'Rendah' ? 'selected' : '' ?>>Rendah</option>
           </select>
         </div>
       </div>
