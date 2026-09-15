@@ -33,26 +33,26 @@ body {
 /* ---------- Corporate application shell ---------- */
 .crf-app-shell { min-height: 100vh; display: flex; }
 .crf-sidebar {
-  width: 207px; flex: 0 0 207px; background: #E5E7EB; color: #374151;
+  width: 207px; flex: 0 0 207px; background: #1d2635; color: #aab4c5;
   display: flex; flex-direction: column; min-height: 100vh;
 }
 .crf-sidebar-brand {
-  height: 58px; background: #1c8fdb; display: flex; align-items: center; gap: 0.55rem; padding: 0 1.2rem;
-  color: #1F2937; text-decoration: none; font-weight: 700; border-bottom: 1px solid #D1D5DB;
+  height: 58px; display: flex; align-items: center; gap: 0.55rem; padding: 0 1.2rem;
+  color: #fff; text-decoration: none; font-weight: 700; border-bottom: 1px solid #303b4d;
 }
 .crf-sidebar-mark { color: #fff; font-size: 1rem; }
 .crf-sidebar-section { padding: 1.15rem 1.05rem 0.45rem; font-size: 0.72rem; color: #718096; }
 .crf-sidebar-nav a {
   display: flex; gap: 0.65rem; align-items: center; padding: 0.58rem 1.05rem;
-  color: #4B5563; text-decoration: none; font-size: 0.79rem;
+  color: #9aa7ba; text-decoration: none; font-size: 0.79rem;
 }
-.crf-sidebar-nav a:hover, .crf-sidebar-nav a.active { color: #1F2937; background: #D1D5DB; }
-.crf-sidebar-nav a.active { border-right: 3px solid #3498DB; }
+.crf-sidebar-nav a:hover, .crf-sidebar-nav a.active { color: #fff; background: #2a3850; }
+.crf-sidebar-nav a.active { border-right: 3px solid #3b82f6; }
 .crf-sidebar-footer { margin-top: auto; padding: 1rem 1.05rem; border-top: 1px solid #303b4d; }
 .crf-sidebar-footer a { color: #f87171; text-decoration: none; font-size: 0.78rem; }
 .crf-content-shell { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .crf-topbar {
-  height: 58px; background: #1c8fdb; color: #fff; display: flex; align-items: center;
+  height: 58px; background: #27344a; color: #fff; display: flex; align-items: center;
   justify-content: space-between; padding: 0 1.35rem;
 }
 .crf-breadcrumb { display: flex; align-items: center; gap: 0.65rem; font-size: 0.76rem; }
