@@ -88,10 +88,6 @@ if ($changeCategory === 'Lainnya' && $changeCategoryDetail === '') {
     $errors[] = 'Detail Kategori wajib diisi untuk kategori "Lainnya".';
 }
 
-if ($alternativeSuggestion === '') {
-    $errors[] = 'Saran Alternatif wajib diisi.';
-}
-
 if ($budgetTypeRaw !== null && !in_array($budgetTypeRaw, $allowedBudgetTypes, true)) {
     $budgetTypeRaw = null;
 }
@@ -180,8 +176,8 @@ try {
         'budget_type'                => $budgetTypeRaw,
         'budget_amount'              => $budgetAmount,
         'change_category'            => $changeCategory,
-        'change_category_detail'     => $changeCategoryDetail,
-        'alternative_suggestion'     => $alternativeSuggestion,
+        'change_category_detail'     => $changeCategoryDetail !== '' ? $changeCategoryDetail : null,
+        'alternative_suggestion'     => $alternativeSuggestion !== '' ? $alternativeSuggestion : null,
         'post_implementation_review' => $postImplementation !== '' ? $postImplementation : null,
         'implementation'             => $implementation !== '' ? $implementation : null,
     ]);
@@ -209,9 +205,7 @@ try {
         ];
     }
 } catch (Throwable $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
+    $pdo->rollBack();
     error_log('submit_crf error: ' . $e->getMessage());
     $_SESSION['flash'] = [
         'type'    => 'danger',

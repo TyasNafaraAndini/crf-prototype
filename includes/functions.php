@@ -29,25 +29,20 @@ use Aws\Exception\AwsException;
  */
 function generateRequestNumber(PDO $pdo, DateTime $date): string
 {
-    $prefix = 'PPU-02.4.';
     $stmt = $pdo->prepare(
-        'SELECT request_number
-         FROM change_requests
-         WHERE request_number LIKE :prefix
-         ORDER BY id DESC'
+        "SELECT AUTO_INCREMENT FROM information_schema.TABLES
+         WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'change_requests'"
     );
-    $stmt->execute(['prefix' => $prefix . '%']);
+    $stmt->execute(['db' => DB_NAME]);
+    $nextId = (int) $stmt->fetchColumn();
 
-    $sequence = 0;
-    foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $requestNumber) {
-        if (preg_match('/^PPU-02\.4\.(\d{4})\.' . $date->format('m') . '\.' . $date->format('y') . '$/', $requestNumber, $matches)) {
-            $sequence = max($sequence, (int) $matches[1]);
-        }
+    if ($nextId <= 0) {
+        $nextId = 1;
     }
 
-    $sequence = str_pad((string) (($sequence + 1) % 10000), 4, '0', STR_PAD_LEFT);
+    $sequence = str_pad((string) ($nextId % 10000), 4, '0', STR_PAD_LEFT);
     $month = $date->format('m');
-    $year = $date->format('y');
+    $year  = $date->format('y');
 
     return sprintf('PPU-02.4.%s.%s.%s', $sequence, $month, $year);
 }
