@@ -293,25 +293,30 @@ $html = '
             font-size: 9px;
         }
 
-        .page-break {
-            page-break-before: always;
+        .process-table {
+            margin-top: 12px;
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
         }
 
-        .signature-table {
-            margin-top: 45px;
-        }
-
-        .signature-table td {
+        .process-table td {
             border: 1px solid #000;
-            height: 85px;
-            padding: 7px;
+            padding: 8px;
             vertical-align: top;
             text-align: center;
+            height: 95px;
         }
 
-        .signature-title {
+        .process-table .process-table-label {
+            margin-top: 12px;
+            font-size: 9px;
+        }
+
+        .process-table .process-table-date {
+            margin-top: 3px;
             font-weight: bold;
-            margin-bottom: 45px;
+            font-size: 10px;
         }
 
         .footer-note {
@@ -512,50 +517,78 @@ $html = '
         ' . $processDateHtml . '
     </div>
 
-    <table class="signature-table">
+    <div class="section-title" style="margin-top: 12px;">
+        PROSES PENGAJUAN
+    </div>
 
+    <table class="process-table">
         <tr>
             <td width="33%">
-                <div class="signature-title">
+                <div style="font-weight: bold; margin-bottom: 12px;">
                     Yang Mengajukan
                 </div>
 
-                <div style="height: 30px;"></div>
+                <div style="font-weight: bold;">
+                    ' . pdfValue($crf['full_name']) . '
+                </div>
 
-                ( ' . pdfValue($crf['full_name']) . ' )
+                <div class="process-table-label">
+                    Tanggal Pengajuan
+                </div>
+
+                <div class="process-table-date">
+                    ' . $submissionDate . '
+                </div>
             </td>
 
             <td width="33%">
-                <div class="signature-title">
+                <div style="font-weight: bold; margin-bottom: 12px;">
                     Mengetahui
                 </div>
-                <div style="height: 30px;"></div>
-                <div>
-                ( ........................................ )
+
+                <div style="font-weight: bold;">
+                    Team CMO
                 </div>
 
-                <div style="margin-top: 5px; font-weight: bold;">
-                    Team CMO
+                <div class="process-table-label">
+                    Tanggal Approval
+                </div>
+
+                <div class="process-table-date">
+                    ' . (
+                        !empty($crf['approval_at'])
+                            ? date('d-m-Y', strtotime($crf['approval_at']))
+                            : '-'
+                    ) . '
                 </div>
             </td>
 
             <td width="34%">
-                <div class="signature-title">
+                <div style="font-weight: bold; margin-bottom: 12px;">
                     Departemen Operasional
                 </div>
 
-                <div style="height: 30px;"></div>
-
-                <div style="font-weight: bold; text-decoration: underline;">
+                <div style="font-weight: bold;">
                     Joko Sri Purwoko
                 </div>
 
                 <div>
                     Kepala Departemen
                 </div>
+
+                <div class="process-table-label">
+                    Tanggal Selesai
+                </div>
+
+                <div class="process-table-date">
+                    ' . (
+                        !empty($crf['solved_at'])
+                            ? date('d-m-Y', strtotime($crf['solved_at']))
+                            : '-'
+                    ) . '
+                </div>
             </td>
         </tr>
-
     </table>
 
     <div class="footer-note">
