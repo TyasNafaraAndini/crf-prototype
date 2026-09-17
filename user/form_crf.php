@@ -2,15 +2,19 @@
 /**
  * user/form_crf.php
  * ---------------------------------------------------------------
- * Halaman utama prototype. Tidak ada login - langsung tampil Form CRF
- * (lihat brief butir 4A). Field otomatis (Hari/Tanggal, Kepada, Dari,
- * Nomor Register) ditampilkan readonly dan diambil dari sistem/database,
- * bukan diketik user (brief butir 7-10).
+ * Halaman Form CRF untuk user yang sudah login.
+ * Data user aktif diambil melalui getCurrentUser().
+ * Field Nama Lengkap, No. Handphone/WA, dan Email tetap diisi
+ * secara manual pada setiap pengajuan sebagai data pengajuan CRF.
+ * Field otomatis seperti Hari/Tanggal, Kepada, dan Nomor Register
+ * diisi oleh sistem.
  * ---------------------------------------------------------------
  */
 
-require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
+
+requireLogin();
 
 $pdo  = getConnection();
 $user = getCurrentUser();

@@ -9,6 +9,7 @@
 if (!isset($pageTitle)) {
     $pageTitle = 'CRF Prototype';
 }
+$currentUser = getCurrentUser();
 $currentPath = basename($_SERVER['PHP_SELF'] ?? '');
 $isDashboard = $currentPath === 'dashboard.php';
 $isForm = $currentPath === 'form_crf.php';
@@ -36,12 +37,19 @@ $appBasePath = rtrim($appBasePath, '/');
     </a>
     <div class="crf-sidebar-section">Menu Utama</div>
     <nav class="crf-sidebar-nav" aria-label="Navigasi utama">
-      <a class="<?= $isDashboard ? 'active' : '' ?>" href="<?= h($appBasePath) ?>/admin/dashboard.php">
-        <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
+
+      <a class="<?= $isDashboard ? 'active' : '' ?>"
+        href="<?= h($appBasePath) ?>/admin/dashboard.php">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Dashboard</span>
       </a>
-      <a class="<?= $isForm ? 'active' : '' ?>" href="<?= h($appBasePath) ?>/user/form_crf.php">
-        <i class="bi bi-file-earmark-plus"></i><span>Form CRF</span>
+
+      <a class="<?= $isForm ? 'active' : '' ?>"
+        href="<?= h($appBasePath) ?>/user/form_crf.php">
+        <i class="bi bi-file-earmark-plus"></i>
+        <span>Form CRF</span>
       </a>
+
     </nav>
     <div class="crf-sidebar-footer"><a href="<?= h($appBasePath) ?>/"><i class="bi bi-box-arrow-left"></i> Keluar</a></div>
   </aside>
@@ -49,7 +57,8 @@ $appBasePath = rtrim($appBasePath, '/');
     <header class="crf-topbar">
       <div class="crf-breadcrumb"><strong>SIAP PPU</strong><span>Menu Saya</span><i class="bi bi-chevron-right"></i><span><?= h($pageTitle) ?></span></div>
       <div class="crf-user">
-        <div><strong>Damayanti Diah P</strong><small>Magang</small></div>
-        <span class="crf-avatar">DP</span>
+       <strong><?= h($currentUser['nama'] ?? '-') ?></strong>
+       <small><?= h($currentUser['dept'] ?? '-') ?></small>
+        <span class="crf-avatar"> <?= h(strtoupper(substr($currentUser['nama'] ?? 'U', 0, 2))) ?></span>
       </div>
     </header>

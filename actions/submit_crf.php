@@ -2,9 +2,10 @@
 /**
  * actions/submit_crf.php
  * ---------------------------------------------------------------
- * Menangani tombol "Submit CRF" (lihat brief butir 18).
+ * Menangani tombol "Submit CRF".
  * Alur: validasi -> simpan data -> buat nomor register ->
- *       simpan tanggal pengajuan -> simpan user_id -> status "Dalam Proses".
+ *       simpan tanggal pengajuan -> simpan user_id ->
+ *       status awal "Belum Ditindak Lanjuti".
  * ---------------------------------------------------------------
  */
 

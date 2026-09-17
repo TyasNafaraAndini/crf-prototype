@@ -48,7 +48,7 @@ if ($id <= 0 || $status === null) {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT status, solved_at, cancelled_at FROM change_requests WHERE id = :id LIMIT 1');
+$stmt = $pdo->prepare('SELECT status, approval_at, solved_at, cancelled_at FROM change_requests WHERE id = :id LIMIT 1');
 $stmt->execute(['id' => $id]);
 $current = $stmt->fetch();
 
@@ -58,18 +58,26 @@ if (!$current) {
     exit;
 }
 
-$solvedAt    = $current['solved_at'];
-$cancelledAt = $current['cancelled_at'];
+$approvalAt = $current['approval_at'] ?? null;
+$solvedAt = $current['solved_at'] ?? null;
+$cancelledAt = $current['cancelled_at'] ?? null;
 
-if ($status === 'Solve') {
-    $solvedAt = $solvedAt ?? (new DateTime())->format('Y-m-d H:i:s');
+if (
+    ($current['status'] ?? '') === 'Belum Ditindak Lanjuti' &&
+    $statusRaw === 'Dalam Proses'
+) {
+    $approvalAt = $approvalAt ?: date('Y-m-d H:i:s');
+}
+
+if ($statusRaw === 'Solve') {
+    $solvedAt = $solvedAt ?: date('Y-m-d H:i:s');
     $cancelledAt = null;
-} elseif ($status === 'Cancel') {
-    $cancelledAt = $cancelledAt ?? (new DateTime())->format('Y-m-d H:i:s');
+} elseif ($statusRaw === 'Cancel') {
+    $cancelledAt = $cancelledAt ?: date('Y-m-d H:i:s');
     $solvedAt = null;
 } elseif (
-    $status === 'Dalam Proses' ||
-    $status === 'Belum Ditindak Lanjuti'
+    $statusRaw === 'Dalam Proses' ||
+    $statusRaw === 'Belum Ditindak Lanjuti'
 ) {
     $solvedAt = null;
     $cancelledAt = null;
@@ -81,6 +89,7 @@ try {
          SET level = :level,
              status = :status,
              tanggapan_tindak_lanjut = :tanggapan,
+             approval_at = :approval_at,
              solved_at = :solved_at,
              cancelled_at = :cancelled_at,
              post_implementation_review = :pir,
@@ -91,6 +100,7 @@ try {
         'level'          => $level,
         'status'         => $status,
         'tanggapan'      => $tanggapan !== '' ? $tanggapan : null,
+        'approval_at'    => $approvalAt,
         'solved_at'      => $solvedAt,
         'cancelled_at'   => $cancelledAt,
         'pir'            => $postImplementation !== '' ? $postImplementation : null,

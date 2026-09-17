@@ -18,11 +18,11 @@ $pdo = getConnection();
 $id  = (int) ($_GET['id'] ?? 0);
 
 $stmt = $pdo->prepare(
-    'SELECT cr.*, u.name AS submitter_name
-     FROM change_requests cr
-     JOIN users u ON u.id = cr.user_id
-     WHERE cr.id = :id
-     LIMIT 1'
+    'SELECT cr.*, u.nama AS submitter_name
+    FROM change_requests cr
+    JOIN users u ON u.id = cr.user_id
+    WHERE cr.id = :id
+    LIMIT 1'
 );
 $stmt->execute(['id' => $id]);
 $crf = $stmt->fetch();

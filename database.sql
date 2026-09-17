@@ -2,13 +2,6 @@
 -- CRF PROTOTYPE - DATABASE SCHEMA
 -- PT Persona Prima Utama (PPU)
 -- =====================================================================
--- Cara pakai:
---   1. Buka phpMyAdmin
---   2. Buat/klik database baru bernama: crf_prototype
---      (atau langsung import file ini, karena file ini sudah membuat
---       databasenya sendiri lewat CREATE DATABASE di bawah)
---   3. Klik tab "Import", pilih file database.sql ini, klik Go
--- =====================================================================
 
 CREATE DATABASE IF NOT EXISTS crf_prototype
     CHARACTER SET utf8mb4
@@ -18,20 +11,42 @@ USE crf_prototype;
 
 -- ---------------------------------------------------------------------
 -- Tabel: users
--- Menyimpan data user. Prototype belum punya halaman login, tapi tabel
--- ini tetap dibuat rapi supaya nanti gampang disambungkan ke SIAP PPU.
+-- prototype CRF.
 -- ---------------------------------------------------------------------
 CREATE TABLE users (
-    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(150)        NOT NULL,
-    phone       VARCHAR(30)         NULL,
-    email       VARCHAR(150)        NULL,
-    department  VARCHAR(150)        NOT NULL,
-    division    VARCHAR(150)        NULL,
-    role        ENUM('user','admin') NOT NULL DEFAULT 'user',
-    created_at  DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP
-                                     ON UPDATE CURRENT_TIMESTAMP
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+    userid          VARCHAR(50)     NULL,
+    password        VARCHAR(255)    NOT NULL,
+    password_new    VARCHAR(75)     NULL,
+
+    nama            VARCHAR(75)     NULL,
+    dept            VARCHAR(75)     NULL,
+    divisi          VARCHAR(50)     NULL,
+
+    email           VARCHAR(150)    NULL,
+    no_wa           VARCHAR(25)     NULL,
+
+    tgl_insert      TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP,
+    lastlogin       DATETIME        NULL,
+
+    ganti_password  ENUM('1','2')   NULL,
+    gender          VARCHAR(7)      NULL,
+
+    atasan_id       VARCHAR(10)     NULL,
+    atasan_nama     VARCHAR(75)     NULL,
+    atasan_telp     VARCHAR(25)     NULL,
+
+    kpu_kode        VARCHAR(3)      NULL,
+    kpu_nama        VARCHAR(75)     NULL,
+    npp             VARCHAR(50)     NULL,
+
+    status_wa       ENUM('BLM','SDH') NOT NULL DEFAULT 'BLM',
+    pusat           ENUM('YES','NO')  NOT NULL DEFAULT 'NO',
+
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                  ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -52,10 +67,10 @@ CREATE TABLE change_requests (
     from_division               VARCHAR(150)    NULL,
 
     -- Catatan: change_description, benefit, impact, reason, dan
-    -- change_category dibuat NULLABLE di level database supaya status
-    -- "Draft" (lihat brief butir 18) bisa menyimpan data yang belum
-    -- lengkap. Field-field ini WAJIB diisi hanya ketika user menekan
-    -- "Submit CRF" - aturan wajib itu ditegakkan di kode PHP
+    -- change_category dibuat NULLABLE di level database supaya
+    -- validasi kelengkapan data dapat ditegakkan oleh kode PHP.
+    -- Field-field tersebut WAJIB diisi ketika user menekan
+    -- "Submit CRF" - aturan wajib ditegakkan di kode PHP
     -- (actions/submit_crf.php), bukan di skema database.
     change_description          TEXT            NULL,
     benefit                     TEXT            NULL,
@@ -73,9 +88,17 @@ CREATE TABLE change_requests (
     post_implementation_review  TEXT            NULL,
     implementation              TEXT            NULL,
 
-    level                       ENUM('Kecil','Sedang','Tinggi') NULL DEFAULT NULL,
-    status                      ENUM('Draft','Dalam Proses','Solve','Cancel') NOT NULL DEFAULT 'Draft',
+    level                       ENUM('Tinggi','Normal','Rendah') NULL DEFAULT NULL,
+    status                      ENUM(
+                                    'Belum Ditindak Lanjuti',
+                                    'Dalam Proses',
+                                    'Solve',
+                                    'Cancel'
+                                ) NOT NULL DEFAULT 'Belum Ditindak Lanjuti',
 
+    tanggapan_tindak_lanjut     TEXT            NULL,
+
+    approval_at                 DATETIME        NULL,
     solved_at                   DATETIME        NULL,
     cancelled_at                DATETIME        NULL,
 
@@ -112,18 +135,46 @@ CREATE TABLE attachments (
 -- DATA DUMMY
 -- ---------------------------------------------------------------------
 
--- User biasa (id = 1) -> disimulasikan sebagai user yang sedang login
-INSERT INTO users (id, name, phone, email, department, division, role) VALUES
-(1, 'User Demo', '081234567890', 'userdemo@ptppu.co.id',
- 'Departemen Teknologi Informasi', 'IT Support', 'user');
+-- User 
+INSERT INTO users (
+    id,
+    userid,
+    password,
+    nama,
+    dept,
+    divisi,
+    email,
+    no_wa
+) VALUES (
+    1,
+    'USER001',
+    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC8T9hS2YqJYQ1Q8q7i',
+    'User Demo',
+    'Departemen Teknologi Informasi',
+    'IT Support',
+    'user@ppu.test',
+    '081234567890'
+);
 
--- Admin dummy (id = 2)
-INSERT INTO users (id, name, phone, email, department, division, role) VALUES
-(2, 'Admin CRF', NULL, 'admincrf@ptppu.co.id',
- 'Departemen Operasional', 'Divisi Otomasi', 'admin');
+-- Akun demo kedua
+INSERT INTO users (
+    id,
+    userid,
+    password,
+    nama,
+    dept,
+    divisi,
+    email,
+    no_wa
+) VALUES (
+    2,
+    'ADMIN001',
+    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC8T9hS2YqJYQ1Q8q7i',
+    'Admin CRF',
+    'Departemen Operasional',
+    'Divisi Otomasi',
+    'admin@ppu.test',
+    NULL
+);
 
--- Catatan:
--- - Karena kolom id di atas diisi manual, AUTO_INCREMENT untuk tabel
---   users akan otomatis dilanjutkan dari nilai tertinggi (3) oleh MySQL.
--- - Belum ada contoh data di change_requests / attachments; data akan
---   terisi dengan sendirinya saat prototype dipakai (submit form).
+

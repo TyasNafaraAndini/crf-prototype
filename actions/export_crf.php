@@ -575,18 +575,6 @@ $html = '
                 <div>
                     Kepala Departemen
                 </div>
-
-                <div class="process-table-label">
-                    Tanggal Selesai
-                </div>
-
-                <div class="process-table-date">
-                    ' . (
-                        !empty($crf['solved_at'])
-                            ? date('d-m-Y', strtotime($crf['solved_at']))
-                            : '-'
-                    ) . '
-                </div>
             </td>
         </tr>
     </table>
