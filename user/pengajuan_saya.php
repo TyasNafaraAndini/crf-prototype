@@ -5,7 +5,102 @@ require_once __DIR__ . '/../includes/functions.php';
 $user = getCurrentUser();
 $pdo = getConnection();
 
-$stmt = $pdo->prepare("
+/* =========================================================
+ * Pencarian dan Filter
+ * ========================================================= */
+
+$search = trim($_GET['search'] ?? '');
+$statusFilter = trim($_GET['status'] ?? '');
+$categoryFilter = trim($_GET['category'] ?? '');
+
+$allowedStatuses = [
+    'Draft',
+    'Belum Ditindak Lanjuti',
+    'Perlu Revisi',
+    'Dalam Proses',
+    'Solve',
+    'Cancel'
+];
+
+$allowedCategories = [
+    'Aplikasi',
+    'Infrastruktur',
+    'Proses',
+    'Security',
+    'Lainnya'
+];
+
+/*
+ * Kalau filter tidak valid, kosongkan.
+ */
+if (
+    $statusFilter !== ''
+    && !in_array($statusFilter, $allowedStatuses, true)
+) {
+    $statusFilter = '';
+}
+
+if (
+    $categoryFilter !== ''
+    && !in_array($categoryFilter, $allowedCategories, true)
+) {
+    $categoryFilter = '';
+}
+
+
+/* =========================================================
+ * Query
+ * ========================================================= */
+
+$where = [
+    'user_id = :user_id'
+];
+
+$params = [
+    'user_id' => $user['id']
+];
+
+
+/*
+ * Pencarian:
+ * Nomor Register atau isi perubahan yang diminta.
+ */
+if ($search !== '') {
+
+    $where[] = '(
+        request_number LIKE :search_request
+        OR change_description LIKE :search_description
+    )';
+
+    $searchValue = '%' . $search . '%';
+
+    $params['search_request'] = $searchValue;
+    $params['search_description'] = $searchValue;
+}
+
+/*
+ * Filter Status
+ */
+if ($statusFilter !== '') {
+
+    $where[] = 'status = :status';
+
+    $params['status'] = $statusFilter;
+}
+
+
+/*
+ * Filter Kategori
+ */
+if ($categoryFilter !== '') {
+
+    $where[] = 'change_category = :category';
+
+    $params['category'] = $categoryFilter;
+}
+
+
+$sql = "
     SELECT
         id,
         request_number,
@@ -16,13 +111,12 @@ $stmt = $pdo->prepare("
         change_description,
         tanggapan_tindak_lanjut
     FROM change_requests
-    WHERE user_id = :user_id
+    WHERE " . implode(' AND ', $where) . "
     ORDER BY id DESC
-");
+";
 
-$stmt->execute([
-    'user_id' => $user['id']
-]);
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
 
 $pengajuan = $stmt->fetchAll();
 
@@ -96,6 +190,81 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
 
                 <?php else: ?>
+
+                    <form method="GET" class="mb-4">
+
+                        <div class="row g-2">
+
+                            <div class="col-md-5">
+                                <input
+                                    type="text"
+                                    name="search"
+                                    class="form-control"
+                                    placeholder="Cari Nomor Register atau perubahan..."
+                                    value="<?= h($search) ?>"
+                                >
+                            </div>
+
+                            <div class="col-md-3">
+                                <select name="status" class="form-select">
+                                    <option value="">Semua Status</option>
+
+                                    <?php foreach ($allowedStatuses as $statusOption): ?>
+                                        <option
+                                            value="<?= h($statusOption) ?>"
+                                            <?= $statusFilter === $statusOption ? 'selected' : '' ?>
+                                        >
+                                            <?= h(statusLabel($statusOption)) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <select name="category" class="form-select">
+                                    <option value="">Semua Kategori</option>
+
+                                    <?php foreach ($allowedCategories as $categoryOption): ?>
+                                        <option
+                                            value="<?= h($categoryOption) ?>"
+                                            <?= $categoryFilter === $categoryOption ? 'selected' : '' ?>
+                                        >
+                                            <?= h($categoryOption) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-md-1">
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary w-100"
+                                    title="Cari"
+                                >
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+
+                        </div>
+
+                        <?php if (
+                            $search !== ''
+                            || $statusFilter !== ''
+                            || $categoryFilter !== ''
+                        ): ?>
+
+                            <div class="mt-2">
+                                <a
+                                    href="pengajuan_saya.php"
+                                    class="small text-decoration-none"
+                                >
+                                    Reset pencarian & filter
+                                </a>
+                            </div>
+
+                        <?php endif; ?>
+
+                    </form>
 
                     <div class="table-responsive">
 
