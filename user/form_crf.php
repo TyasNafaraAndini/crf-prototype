@@ -83,9 +83,12 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <?php if ($flash): ?>
-      <div class="alert alert-<?= h($flash['type']) ?> crf-alert" role="alert">
-        <?= h($flash['message']) ?>
-      </div>
+        <div
+            class="alert alert-<?= h($flash['type']) ?>"
+            style="white-space: pre-line;"
+        >
+            <?= h($flash['message']) ?>
+        </div>
     <?php endif; ?>
 
     <!-- <div id="validationAlert" class="alert alert-danger crf-alert d-none" role="alert">

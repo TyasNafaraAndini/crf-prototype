@@ -27,6 +27,7 @@ $user = getCurrentUser();
  * 1. Ambil ID Draft
  * ------------------------------------------------------------------ */
 $draftId = (int) ($_POST['id'] ?? 0);
+$isResubmission = false;
 
 /* ------------------------------------------------------------------
  * 2. Ambil & bersihkan input
@@ -160,8 +161,10 @@ if ($errors) {
     $_SESSION['old_crf'] = $_POST;
 
     $_SESSION['flash'] = [
-        'type'    => 'danger',
-        'message' => implode(' ', $errors),
+        'type' => 'danger',
+        'message' =>
+            "Mohon lengkapi data berikut:\n\n• "
+            . implode("\n• ", $errors),
     ];
 
     /*
@@ -227,8 +230,16 @@ try {
 
         if (!$draft) {
             throw new RuntimeException(
-                'Draft tidak ditemukan atau tidak dapat di-submit.'
+                'Draft atau pengajuan revisi tidak ditemukan atau tidak dapat di-submit.'
             );
+        }
+
+        /*
+        * Tandai jika user sedang mengirim ulang CRF
+        * yang sebelumnya berstatus Perlu Revisi.
+        */
+        if ($draft['status'] === 'Perlu Revisi') {
+            $isResubmission = true;
         }
 
         /*
@@ -365,8 +376,45 @@ try {
             'alternative_suggestion' => $alternativeSuggestion,
         ]);
 
-        $crfId = (int) $pdo->lastInsertId();
+            $crfId = (int) $pdo->lastInsertId();
     }
+
+    /* ------------------------------------------------------------------
+     * 6A. Catat aktivitas timeline
+     * ------------------------------------------------------------------ */
+
+    $activity = $isResubmission
+        ? 'Kirim Ulang'
+        : 'Pengajuan Diajukan';
+
+    $description = $isResubmission
+        ? 'CRF dikirim ulang setelah dilakukan perbaikan.'
+        : 'CRF berhasil diajukan.';
+
+    $actor = !empty($user['nama'])
+        ? $user['nama']
+        : $user['userid'];
+
+    $logStmt = $pdo->prepare("
+        INSERT INTO crf_activity_logs (
+            change_request_id,
+            activity,
+            description,
+            actor
+        ) VALUES (
+            :change_request_id,
+            :activity,
+            :description,
+            :actor
+        )
+    ");
+
+    $logStmt->execute([
+        'change_request_id' => $crfId,
+        'activity'          => $activity,
+        'description'       => $description,
+        'actor'             => $actor,
+    ]);
 
     /* ------------------------------------------------------------------
      * 7. Upload attachment

@@ -43,6 +43,26 @@ $attStmt = $pdo->prepare('SELECT * FROM attachments WHERE change_request_id = :i
 $attStmt->execute(['id' => $id]);
 $attachments = $attStmt->fetchAll();
 
+/*
+ * Timeline proses pengajuan
+ */
+$timelineStmt = $pdo->prepare("
+    SELECT
+        activity,
+        description,
+        actor,
+        created_at
+    FROM crf_activity_logs
+    WHERE change_request_id = :id
+    ORDER BY created_at ASC, id ASC
+");
+
+$timelineStmt->execute([
+    'id' => $id
+]);
+
+$timeline = $timelineStmt->fetchAll();
+
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
@@ -310,6 +330,94 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="crf-detail-value mb-0"><?= h($crf['implementation'] ?? '-') ?></div>
 
       </div>
+    </div>
+
+    <!-- TIMELINE PROSES PENGAJUAN -->
+    <div class="crf-section mt-4">
+
+        <div class="crf-section-header">
+
+            <span class="crf-section-number">
+                <i class="bi bi-clock-history"></i>
+            </span>
+
+            <h2>Timeline Proses Pengajuan</h2>
+
+        </div>
+
+        <div class="crf-section-body">
+
+            <?php if (!$timeline): ?>
+
+                <div class="text-muted">
+                    Belum ada riwayat proses pengajuan.
+                </div>
+
+            <?php else: ?>
+
+                <div class="crf-timeline">
+
+                    <?php foreach ($timeline as $item): ?>
+
+                        <div class="crf-timeline-item">
+
+                            <div class="crf-timeline-dot"></div>
+
+                            <div class="crf-timeline-content">
+
+                                <div class="crf-timeline-top">
+
+                                    <strong>
+                                        <?= h(
+                                            $item['activity'] === 'Solve'
+                                                ? 'Selesai'
+                                                : (
+                                                    $item['activity'] === 'Cancel'
+                                                        ? 'Dibatalkan'
+                                                        : $item['activity']
+                                                )
+                                        ) ?>
+                                    </strong>
+
+                                    <span class="crf-timeline-date">
+                                        <?= h(
+                                            date(
+                                                'd-m-Y H:i',
+                                                strtotime($item['created_at'])
+                                            )
+                                        ) ?>
+                                    </span>
+
+                                </div>
+
+                                <?php if (!empty($item['description'])): ?>
+
+                                    <div class="crf-timeline-description">
+                                        <?= nl2br(h($item['description'])) ?>
+                                    </div>
+
+                                <?php endif; ?>
+
+                                <?php if (!empty($item['actor'])): ?>
+
+                                    <div class="crf-timeline-actor">
+                                        Oleh: <?= h($item['actor']) ?>
+                                    </div>
+
+                                <?php endif; ?>
+
+                            </div>
+
+                        </div>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+            <?php endif; ?>
+
+        </div>
+
     </div>
 
   </div>

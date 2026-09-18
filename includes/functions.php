@@ -29,22 +29,81 @@ use Aws\Exception\AwsException;
  */
 function generateRequestNumber(PDO $pdo, DateTime $date): string
 {
-    $stmt = $pdo->prepare(
-        "SELECT AUTO_INCREMENT FROM information_schema.TABLES
-         WHERE TABLE_SCHEMA = :db AND TABLE_NAME = 'change_requests'"
-    );
-    $stmt->execute(['db' => DB_NAME]);
-    $nextId = (int) $stmt->fetchColumn();
+    /*
+     * Ambil nomor urut terbesar yang benar-benar sudah tersimpan
+     * di tabel change_requests.
+     *
+     * Format:
+     * PPU-02.4.0016.09.26
+     *
+     * Bagian nomor urut adalah segmen ke-3.
+     */
+    $stmt = $pdo->query("
+        SELECT COALESCE(
+            MAX(
+                CAST(
+                    SUBSTRING_INDEX(
+                        SUBSTRING_INDEX(request_number, '.', 3),
+                        '.',
+                        -1
+                    ) AS UNSIGNED
+                )
+            ),
+            0
+        ) AS max_sequence
+        FROM change_requests
+    ");
 
-    if ($nextId <= 0) {
-        $nextId = 1;
+    $maxSequence = (int) $stmt->fetchColumn();
+
+    $nextSequence = $maxSequence + 1;
+
+    if ($nextSequence > 9999) {
+        throw new RuntimeException(
+            'Nomor register sudah mencapai batas maksimum 9999.'
+        );
     }
 
-    $sequence = str_pad((string) ($nextId % 10000), 4, '0', STR_PAD_LEFT);
     $month = $date->format('m');
     $year  = $date->format('y');
 
-    return sprintf('PPU-02.4.%s.%s.%s', $sequence, $month, $year);
+    /*
+     * Pastikan nomor benar-benar unik.
+     */
+    do {
+        $sequence = str_pad(
+            (string) $nextSequence,
+            4,
+            '0',
+            STR_PAD_LEFT
+        );
+
+        $requestNumber = sprintf(
+            'PPU-02.4.%s.%s.%s',
+            $sequence,
+            $month,
+            $year
+        );
+
+        $checkStmt = $pdo->prepare("
+            SELECT COUNT(*)
+            FROM change_requests
+            WHERE request_number = :request_number
+        ");
+
+        $checkStmt->execute([
+            'request_number' => $requestNumber
+        ]);
+
+        $exists = (int) $checkStmt->fetchColumn() > 0;
+
+        if ($exists) {
+            $nextSequence++;
+        }
+
+    } while ($exists);
+
+    return $requestNumber;
 }
 
 /**

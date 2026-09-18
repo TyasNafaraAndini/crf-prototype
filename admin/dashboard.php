@@ -19,10 +19,16 @@ $search        = trim($_GET['q'] ?? '');
 $statusFilter   = $_GET['status'] ?? '';
 $categoryFilter = $_GET['category'] ?? '';
 
-$allowedStatuses = ['Belum Ditindak Lanjuti', 'Dalam Proses', 'Solve', 'Cancel'];
+$allowedStatuses = [
+    'Belum Ditindak Lanjuti',
+    'Perlu Revisi',
+    'Dalam Proses',
+    'Solve',
+    'Cancel'
+];
 $allowedCategories = ['Aplikasi', 'Infrastruktur', 'Proses', 'Security', 'Lainnya'];
 
-$where  = [];
+$where  = ["cr.status <> 'Draft'"];
 $params = [];
 
 if ($search !== '') {
@@ -55,10 +61,12 @@ $summaryStmt = $pdo->query(
     "SELECT
         COUNT(*) AS total,
         SUM(status = 'Belum Ditindak Lanjuti') AS pending,
+        SUM(status = 'Perlu Revisi') AS revision,
         SUM(status = 'Dalam Proses') AS processing,
         SUM(status = 'Solve') AS solved,
         SUM(status = 'Cancel') AS cancelled
-     FROM change_requests"
+     FROM change_requests
+     WHERE status <> 'Draft'"
 );
 $summary = $summaryStmt->fetch() ?: [];
 
@@ -74,15 +82,41 @@ require_once __DIR__ . '/../includes/header.php';
 
     <div class="crf-page-header">
       <h1>Dashboard Change Request Form</h1>
-      <p>Ringkasan pengajuan Change Request milik Anda</p>
+      <p>Ringkasan seluruh pengajuan Change Request.</p>
     </div>
 
     <div class="crf-stat-grid">
-      <div class="crf-stat-card"><span>Total Pengajuan</span><strong><?= (int) ($summary['total'] ?? 0) ?></strong></div>
-      <div class="crf-stat-card"><span>Belum Ditindak Lanjuti</span><strong><?= (int) ($summary['pending'] ?? 0) ?></strong></div>
-      <div class="crf-stat-card"><span>Dalam Proses</span><strong><?= (int) ($summary['processing'] ?? 0) ?></strong></div>
-      <div class="crf-stat-card"><span>Selesai</span><strong><?= (int) ($summary['solved'] ?? 0) ?></strong></div>
-      <div class="crf-stat-card"><span>Dibatalkan</span><strong><?= (int) ($summary['cancelled'] ?? 0) ?></strong></div>
+
+      <div class="crf-stat-card">
+        <span>Total Pengajuan</span>
+        <strong><?= (int) ($summary['total'] ?? 0) ?></strong>
+      </div>
+
+      <div class="crf-stat-card">
+        <span>Belum Ditindak Lanjuti</span>
+        <strong><?= (int) ($summary['pending'] ?? 0) ?></strong>
+      </div>
+
+      <div class="crf-stat-card">
+        <span>Perlu Revisi</span>
+        <strong><?= (int) ($summary['revision'] ?? 0) ?></strong>
+      </div>
+
+      <div class="crf-stat-card">
+        <span>Dalam Proses</span>
+        <strong><?= (int) ($summary['processing'] ?? 0) ?></strong>
+      </div>
+
+      <div class="crf-stat-card">
+        <span>Selesai</span>
+        <strong><?= (int) ($summary['solved'] ?? 0) ?></strong>
+      </div>
+
+      <div class="crf-stat-card">
+        <span>Dibatalkan</span>
+        <strong><?= (int) ($summary['cancelled'] ?? 0) ?></strong>
+      </div>
+
     </div>
 
     <?php if ($flash): ?>
@@ -149,7 +183,13 @@ require_once __DIR__ . '/../includes/header.php';
                 <tr>
                   <td><?= $i + 1 ?></td>
                   <td><strong><?= h($row['request_number']) ?></strong></td>
-                  <td><?= h(date('d-m-Y', strtotime($row['submission_date']))) ?></td>
+                  <td>
+                    <?php if (!empty($row['submission_date'])): ?>
+                        <?= h(date('d-m-Y', strtotime($row['submission_date']))) ?>
+                    <?php else: ?>
+                        <span class="text-muted">-</span>
+                    <?php endif; ?>
+                </td>
                   <td><?= h($row['full_name']) ?></td>
                   <td><?= h($row['from_department']) ?></td>
                   <td><?= h($row['from_division'] ?? '-') ?></td>

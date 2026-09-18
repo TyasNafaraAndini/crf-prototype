@@ -287,30 +287,57 @@ try {
         );
 
 
-        $stmt->execute([
-            'request_number' => $requestNumber,
-            'user_id' => $user['id'],
-            'full_name' => $fullName,
-            'phone' => $phone,
-            'email' => $email,
-            'to_department' => $toDepartment,
-            'to_division' => $toDivision,
-            'from_department' => $fromDepartment,
-            'from_division' => $fromDivision,
-            'change_description' => $changeDescription,
-            'benefit' => $benefit,
-            'impact' => $impact,
-            'reason' => $reason,
-            'budget_type' => $budgetType !== '' ? $budgetType : null,
-            'budget_amount' => $budgetAmount,
-            'change_category' => $changeCategory !== '' ? $changeCategory : null,
-            'change_category_detail' => $changeCategoryDetail,
-            'alternative_suggestion' => $alternativeSuggestion
-        ]);
+                $stmt->execute([
+                'request_number' => $requestNumber,
+                'user_id' => $user['id'],
+                'full_name' => $fullName,
+                'phone' => $phone,
+                'email' => $email,
+                'to_department' => $toDepartment,
+                'to_division' => $toDivision,
+                'from_department' => $fromDepartment,
+                'from_division' => $fromDivision,
+                'change_description' => $changeDescription,
+                'benefit' => $benefit,
+                'impact' => $impact,
+                'reason' => $reason,
+                'budget_type' => $budgetType !== '' ? $budgetType : null,
+                'budget_amount' => $budgetAmount,
+                'change_category' => $changeCategory !== '' ? $changeCategory : null,
+                'change_category_detail' => $changeCategoryDetail,
+                'alternative_suggestion' => $alternativeSuggestion
+            ]);
 
+            $draftId = (int) $pdo->lastInsertId();
 
-        $draftId = (int) $pdo->lastInsertId();
-    }
+            /*
+            * Catat aktivitas pertama saat pengajuan dibuat.
+            */
+            // $actor = !empty($user['nama'])
+            //     ? $user['nama']
+            //     : $user['userid'];
+
+            // $logStmt = $pdo->prepare("
+            //     INSERT INTO crf_activity_logs (
+            //         change_request_id,
+            //         activity,
+            //         description,
+            //         actor
+            //     ) VALUES (
+            //         :change_request_id,
+            //         :activity,
+            //         :description,
+            //         :actor
+            //     )
+            // ");
+
+            // $logStmt->execute([
+            //     'change_request_id' => $draftId,
+            //     'activity'          => 'Pengajuan Dibuat',
+            //     'description'       => 'Draft pengajuan CRF berhasil dibuat.',
+            //     'actor'             => $actor,
+            // ]);
+        }
 
 
     /*
@@ -383,9 +410,14 @@ try {
     $_SESSION['flash'] = [
         'type' => 'danger',
         'message' =>
-            'Draft gagal disimpan. Silakan coba lagi.'
+            'ERROR: ' . $e->getMessage()
     ];
 
-    header('Location: ../user/form_crf.php');
+    if ($id > 0) {
+        header('Location: ../user/form_crf.php?id=' . $id);
+    } else {
+        header('Location: ../user/form_crf.php');
+    }
+
     exit;
 }

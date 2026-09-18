@@ -84,6 +84,26 @@ $attStmt->execute([
 $attachments = $attStmt->fetchAll();
 
 /*
+ * Timeline proses pengajuan
+ */
+$timelineStmt = $pdo->prepare("
+    SELECT
+        activity,
+        description,
+        actor,
+        created_at
+    FROM crf_activity_logs
+    WHERE change_request_id = :id
+    ORDER BY created_at ASC, id ASC
+");
+
+$timelineStmt->execute([
+    'id' => $id
+]);
+
+$timeline = $timelineStmt->fetchAll();
+
+/*
  * Flash message
  */
 $flash = $_SESSION['flash'] ?? null;
@@ -304,11 +324,19 @@ require_once __DIR__ . '/../includes/header.php';
 
                         <div class="crf-detail-value">
 
-                            <?= h(
-                                formatTanggalIndonesia(
-                                    new DateTime($crf['submission_date'])
-                                )
-                            ) ?>
+                            <?php if (!empty($crf['submission_date'])): ?>
+
+                                <?= h(
+                                    formatTanggalIndonesia(
+                                        new DateTime($crf['submission_date'])
+                                    )
+                                ) ?>
+
+                            <?php else: ?>
+
+                                <span class="text-muted">Belum diajukan</span>
+
+                            <?php endif; ?>
 
                         </div>
 
@@ -714,6 +742,94 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
 
                 </div>
+
+            </div>
+
+        </div>
+
+        <!-- TIMELINE PROSES PENGAJUAN -->
+        <div class="crf-section mt-4">
+
+            <div class="crf-section-header">
+
+                <span class="crf-section-number">
+                    <i class="bi bi-clock-history"></i>
+                </span>
+
+                <h2>Timeline Proses Pengajuan</h2>
+
+            </div>
+
+            <div class="crf-section-body">
+
+                <?php if (!$timeline): ?>
+
+                    <div class="text-muted">
+                        Belum ada riwayat proses pengajuan.
+                    </div>
+
+                <?php else: ?>
+
+                    <div class="crf-timeline">
+
+                        <?php foreach ($timeline as $item): ?>
+
+                            <div class="crf-timeline-item">
+
+                                <div class="crf-timeline-dot"></div>
+
+                                <div class="crf-timeline-content">
+
+                                    <div class="crf-timeline-top">
+
+                                        <strong>
+                                            <?= h(
+                                                $item['activity'] === 'Solve'
+                                                    ? 'Selesai'
+                                                    : (
+                                                        $item['activity'] === 'Cancel'
+                                                            ? 'Dibatalkan'
+                                                            : $item['activity']
+                                                    )
+                                            ) ?>
+                                        </strong>
+
+                                        <span class="crf-timeline-date">
+                                            <?= h(
+                                                date(
+                                                    'd-m-Y H:i',
+                                                    strtotime($item['created_at'])
+                                                )
+                                            ) ?>
+                                        </span>
+
+                                    </div>
+
+                                    <?php if (!empty($item['description'])): ?>
+
+                                        <div class="crf-timeline-description">
+                                            <?= nl2br(h($item['description'])) ?>
+                                        </div>
+
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($item['actor'])): ?>
+
+                                        <div class="crf-timeline-actor">
+                                            Oleh: <?= h($item['actor']) ?>
+                                        </div>
+
+                                    <?php endif; ?>
+
+                                </div>
+
+                            </div>
+
+                        <?php endforeach; ?>
+
+                    </div>
+
+                <?php endif; ?>
 
             </div>
 

@@ -32,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $pdo = getConnection();
+$admin = getCurrentUser();
 
 $id = (int) ($_POST['id'] ?? 0);
 
@@ -127,7 +128,6 @@ $stmt->execute([
 
 $current = $stmt->fetch();
 
-
 if (!$current) {
 
     $_SESSION['flash'] = [
@@ -138,6 +138,8 @@ if (!$current) {
     header('Location: ../admin/dashboard.php');
     exit;
 }
+
+$currentStatus = $current['status'];
 
 
 /*
@@ -202,6 +204,7 @@ if ($statusRaw === 'Solve') {
 
 
 try {
+    $pdo->beginTransaction();
 
     $stmt = $pdo->prepare(
         'UPDATE change_requests
@@ -235,6 +238,60 @@ try {
         'id' => $id,
     ]);
 
+   /*
+ * ---------------------------------------------------------------
+ * Catat perubahan status ke timeline
+ * ---------------------------------------------------------------
+ */
+if ($currentStatus !== $status) {
+
+    $actor = !empty($admin['nama'])
+        ? $admin['nama']
+        : $admin['userid'];
+
+    $activity = $status;
+    $description = null;
+
+    if ($status === 'Dalam Proses') {
+
+        $description = 'Pengajuan sedang diproses oleh admin.';
+
+    } elseif ($status === 'Perlu Revisi') {
+
+        $description = $tanggapan;
+
+    } elseif ($status === 'Solve') {
+
+        $description = 'Pengajuan telah selesai diproses.';
+
+    } elseif ($status === 'Cancel') {
+
+        $description = 'Pengajuan dibatalkan.';
+    }
+
+    $logStmt = $pdo->prepare("
+        INSERT INTO crf_activity_logs (
+            change_request_id,
+            activity,
+            description,
+            actor
+        ) VALUES (
+            :change_request_id,
+            :activity,
+            :description,
+            :actor
+        )
+    ");
+
+    $logStmt->execute([
+        'change_request_id' => $id,
+        'activity'          => $activity,
+        'description'       => $description,
+        'actor'             => $actor,
+    ]);
+}
+
+    $pdo->commit();
 
     $_SESSION['flash'] = [
         'type' => 'success',
@@ -246,6 +303,10 @@ try {
     ];
 
 } catch (Throwable $e) {
+
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
 
     error_log(
         'update_crf error: '

@@ -27,6 +27,12 @@ $stmt->execute([
 $pengajuan = $stmt->fetchAll();
 
 /*
+ * Ambil pesan flash dari proses Submit / Draft / aksi lainnya.
+ */
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
+
+/*
  * Judul halaman untuk browser dan breadcrumb.
  */
 $pageTitle = 'Pengajuan Saya';
@@ -36,6 +42,15 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="crf-page pt-4">
     <div class="container">
+
+        <?php if ($flash): ?>
+        <div
+            class="alert alert-<?= h($flash['type']) ?> crf-alert"
+            role="alert"
+        >
+            <?= h($flash['message']) ?>
+        </div>
+    <?php endif; ?>
 
         <!-- HEADER HALAMAN -->
         <div class="d-flex justify-content-between align-items-center mb-4">
