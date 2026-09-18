@@ -19,9 +19,44 @@ requireLogin();
 $pdo  = getConnection();
 $user = getCurrentUser();
 
+// Cek apakah sedang membuka Draft
+$draftId = (int) ($_GET['id'] ?? 0);
+$draftData = null;
+
+if ($draftId > 0) {
+    $stmt = $pdo->prepare("
+        SELECT *
+        FROM change_requests
+        WHERE id = :id
+          AND user_id = :user_id
+          AND status IN ('Draft', 'Perlu Revisi')
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        'id' => $draftId,
+        'user_id' => $user['id']
+    ]);
+
+    $draftData = $stmt->fetch();
+
+    // Kalau draft tidak ditemukan / bukan milik user
+    if (!$draftData) {
+        $_SESSION['flash'] = [
+            'type' => 'danger',
+            'message' => 'Draft tidak ditemukan atau tidak dapat diakses.'
+        ];
+
+        header('Location: pengajuan_saya.php');
+        exit;
+    }
+}
+
 $today = new DateTime();
 $tanggalDisplay   = formatTanggalIndonesia($today);
-$previewRequestNo = generateRequestNumber($pdo, $today);
+$previewRequestNo = !empty($draftData['request_number'])
+    ? $draftData['request_number']
+    : generateRequestNumber($pdo, $today);
 
 $toDepartment = 'Departemen Operasional';
 $toDivision   = 'Divisi Otomasi';
@@ -30,7 +65,9 @@ $toDivision   = 'Divisi Otomasi';
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
-$old = $_SESSION['old_crf'] ?? [];
+// Data form: gunakan data Draft jika sedang membuka Draft,
+// atau gunakan data lama dari session jika ada error submit.
+$old = $_SESSION['old_crf'] ?? ($draftData ?? []);
 unset($_SESSION['old_crf']);
 
 $pageTitle = 'Form CRF';
@@ -51,12 +88,18 @@ require_once __DIR__ . '/../includes/header.php';
       </div>
     <?php endif; ?>
 
-    <div id="validationAlert" class="alert alert-danger crf-alert d-none" role="alert">
+    <!-- <div id="validationAlert" class="alert alert-danger crf-alert d-none" role="alert">
       <strong>Mohon lengkapi field berikut:</strong>
       <ul id="validationList" class="mb-0 mt-2"></ul>
-    </div>
+    </div> -->
 
     <form action="../actions/submit_crf.php" method="POST" enctype="multipart/form-data" id="crfForm" novalidate>
+
+    <input
+        type="hidden"
+        name="id"
+        value="<?= (int) ($draftData['id'] ?? 0) ?>"
+    >
 
       <!-- ============================================================ -->
       <!-- 1. INFORMASI PENGAJUAN                                        -->
@@ -293,7 +336,13 @@ require_once __DIR__ . '/../includes/header.php';
 
           <div id="category-detail-wrap" class="d-none">
             <label for="change_category_detail" class="crf-field-label" id="category-detail-label">Detail Kategori<span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="change_category_detail" name="change_category_detail" required>
+            <input
+                type="text"
+                class="form-control"
+                id="change_category_detail"
+                name="change_category_detail"
+                value="<?= h($old['change_category_detail'] ?? '') ?>"
+            >
           </div>
         </div>
       </div>
@@ -314,46 +363,36 @@ require_once __DIR__ . '/../includes/header.php';
       </div>
 
       <!-- ============================================================ -->
-      <!-- 7. POST IMPLEMENTATION REVIEW                                 -->
-      <!-- ============================================================ -->
-      <div class="crf-section">
-        <div class="crf-section-header">
-          <span class="crf-section-number">7</span>
-          <h2>Post Implementation Review</h2>
-        </div>
-        <div class="crf-section-body">
-          <p class="crf-hint">
-            Proses evaluasi yang dilakukan setelah perubahan dilakukan sebelum perubahan tersebut diterapkan.
-            <!-- <strong>Tidak wajib diisi saat pengajuan pertama</strong> - bagian ini biasanya dilengkapi oleh admin setelah proses berjalan. -->
-          </p>
-          <textarea class="form-control" id="post_implementation_review" name="post_implementation_review"><?= h($old['post_implementation_review'] ?? '') ?></textarea>
-        </div>
-      </div>
-
-      <!-- ============================================================ -->
-      <!-- 8. IMPLEMENTASI                                               -->
-      <!-- ============================================================ -->
-      <div class="crf-section">
-        <div class="crf-section-header">
-          <span class="crf-section-number">8</span>
-          <h2>Implementasi</h2>
-        </div>
-        <div class="crf-section-body">
-          <p class="crf-hint">
-            Pelaksanaan yang telah dilakukan atas perubahan yang telah disampaikan.
-            <!-- <strong>Tidak wajib diisi saat pengajuan pertama.</strong> -->
-          </p>
-          <textarea class="form-control" id="implementation" name="implementation"><?= h($old['implementation'] ?? '') ?></textarea>
-        </div>
-      </div>
-
-      <!-- ============================================================ -->
       <!-- TOMBOL FORM                                                   -->
       <!-- ============================================================ -->
       <div class="d-flex justify-content-end gap-2 mb-4">
-        <button type="submit" class="btn btn-crf-primary px-4" formaction="../actions/submit_crf.php">
-          <i class="bi bi-send-check"></i> Submit CRF
+
+        <button
+          type="submit"
+          name="action"
+          value="draft"
+          class="btn btn-crf-outline px-4"
+          formaction="../actions/save_draft.php"
+          formnovalidate
+        >
+          <i class="bi bi-save2"></i>
+          Simpan Draft
         </button>
+
+        <button
+          type="submit"
+          name="action"
+          value="submit"
+          class="btn btn-crf-primary px-4"
+          formaction="../actions/submit_crf.php"
+        >
+          <i class="bi bi-send-check"></i>
+          <?= ($draftData['status'] ?? '') === 'Perlu Revisi'
+              ? 'Kirim Ulang CRF'
+              : 'Submit CRF'
+          ?>
+        </button>
+
       </div>
 
     </form>

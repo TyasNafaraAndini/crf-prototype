@@ -3,9 +3,12 @@
  * actions/submit_crf.php
  * ---------------------------------------------------------------
  * Menangani tombol "Submit CRF".
- * Alur: validasi -> simpan data -> buat nomor register ->
- *       simpan tanggal pengajuan -> simpan user_id ->
- *       status awal "Belum Ditindak Lanjuti".
+ *
+ * Alur:
+ * - Form baru -> INSERT sebagai pengajuan resmi
+ * - Draft -> UPDATE Draft yang sama menjadi "Belum Ditindak Lanjuti"
+ * - Jika validasi gagal -> kembali ke form yang sama
+ * - Nomor register Draft tetap dipertahankan saat Submit
  * ---------------------------------------------------------------
  */
 
@@ -21,40 +24,53 @@ $pdo  = getConnection();
 $user = getCurrentUser();
 
 /* ------------------------------------------------------------------
- * 1. Ambil & bersihkan input
+ * 1. Ambil ID Draft
  * ------------------------------------------------------------------ */
-$fullName          = trim($_POST['full_name'] ?? '');
-$phone             = trim($_POST['phone'] ?? '');
-$email             = trim($_POST['email'] ?? '');
+$draftId = (int) ($_POST['id'] ?? 0);
 
-$changeDescription    = trim($_POST['change_description'] ?? '');
-$benefit               = trim($_POST['benefit'] ?? '');
-$impact                = trim($_POST['impact'] ?? '');
-$reason                = trim($_POST['reason'] ?? '');
+/* ------------------------------------------------------------------
+ * 2. Ambil & bersihkan input
+ * ------------------------------------------------------------------ */
+$fullName = trim($_POST['full_name'] ?? '');
+$phone    = trim($_POST['phone'] ?? '');
+$email    = trim($_POST['email'] ?? '');
+
+$changeDescription = trim($_POST['change_description'] ?? '');
+$benefit            = trim($_POST['benefit'] ?? '');
+$impact             = trim($_POST['impact'] ?? '');
+$reason             = trim($_POST['reason'] ?? '');
 
 $fromDepartment = trim($_POST['from_department'] ?? '');
 $fromDivision   = trim($_POST['from_division'] ?? '');
 
-$budgetTypeRaw         = $_POST['budget_type'] ?? null;
-$budgetAmountRaw       = $_POST['budget_amount'] ?? null;
+$budgetTypeRaw   = $_POST['budget_type'] ?? null;
+$budgetAmountRaw = $_POST['budget_amount'] ?? null;
 
-$changeCategory        = $_POST['change_category'] ?? '';
-$changeCategoryDetail  = trim($_POST['change_category_detail'] ?? '');
+$changeCategory       = $_POST['change_category'] ?? '';
+$changeCategoryDetail = trim($_POST['change_category_detail'] ?? '');
 
 $alternativeSuggestion = trim($_POST['alternative_suggestion'] ?? '');
-$postImplementation    = trim($_POST['post_implementation_review'] ?? '');
-$implementation        = trim($_POST['implementation'] ?? '');
 
 /* ------------------------------------------------------------------
- * 2. Validasi server-side (lihat brief butir 30)
- * Kepada tidak divalidasi dari input karena nilainya tetap/hardcode,
- * bukan berasal dari input user (mencegah manipulasi field readonly).
+ * 3. Validasi
  * ------------------------------------------------------------------ */
-$allowedCategories = ['Aplikasi', 'Infrastruktur', 'Proses', 'Security', 'Lainnya'];
-$allowedBudgetTypes = ['rkap', 'boq_pks', 'anggaran_baru'];
+$allowedCategories = [
+    'Aplikasi',
+    'Infrastruktur',
+    'Proses',
+    'Security',
+    'Lainnya'
+];
+
+$allowedBudgetTypes = [
+    'rkap',
+    'boq_pks',
+    'anggaran_baru'
+];
 
 $errors = [];
 
+/* Informasi pengajuan */
 if ($fullName === '') {
     $errors[] = 'Nama Lengkap wajib diisi.';
 }
@@ -69,11 +85,24 @@ if ($email === '') {
     $errors[] = 'Format email tidak valid.';
 }
 
-if ($changeDescription === '') { $errors[] = 'Rincian Permohonan Perubahan wajib diisi.'; }
-if ($benefit === '')            { $errors[] = 'Benefit dari Perubahan wajib diisi.'; }
-if ($impact === '')             { $errors[] = 'Dampak Jika Tidak Dilakukan Perubahan wajib diisi.'; }
-if ($reason === '')             { $errors[] = 'Alasan Permohonan Perubahan wajib diisi.'; }
+/* Change Request Description */
+if ($changeDescription === '') {
+    $errors[] = 'Rincian Permohonan Perubahan wajib diisi.';
+}
 
+if ($benefit === '') {
+    $errors[] = 'Benefit dari Perubahan wajib diisi.';
+}
+
+if ($impact === '') {
+    $errors[] = 'Dampak Jika Tidak Dilakukan Perubahan wajib diisi.';
+}
+
+if ($reason === '') {
+    $errors[] = 'Alasan Permohonan Perubahan wajib diisi.';
+}
+
+/* Dari */
 if ($fromDepartment === '') {
     $errors[] = 'Departemen wajib diisi.';
 }
@@ -82,109 +111,266 @@ if ($fromDivision === '') {
     $errors[] = 'Divisi wajib diisi.';
 }
 
+/* Kategori */
 if (!in_array($changeCategory, $allowedCategories, true)) {
     $errors[] = 'Kategori Perubahan wajib dipilih.';
 }
+
 if ($changeCategory === 'Lainnya' && $changeCategoryDetail === '') {
     $errors[] = 'Detail Kategori wajib diisi untuk kategori "Lainnya".';
 }
 
-if ($budgetTypeRaw !== null && !in_array($budgetTypeRaw, $allowedBudgetTypes, true)) {
-    $budgetTypeRaw = null;
-}
-$budgetAmount = ($budgetTypeRaw !== null && $budgetAmountRaw !== '' && is_numeric($budgetAmountRaw))
-    ? (float) $budgetAmountRaw
-    : null;
-
-if ($budgetTypeRaw === null || $budgetTypeRaw === '') {
-    $errors[] = 'Biaya / Anggaran belum dipilih.';
+/* Saran Alternatif */
+if ($alternativeSuggestion === '') {
+    $errors[] = 'Saran Alternatif wajib diisi.';
 }
 
+/* Budget */
 if (
     $budgetTypeRaw !== null &&
     $budgetTypeRaw !== '' &&
-    ($budgetAmountRaw === '' || !is_numeric($budgetAmountRaw))
+    !in_array($budgetTypeRaw, $allowedBudgetTypes, true)
 ) {
-    $errors[] = 'Nominal Biaya / Anggaran belum diisi.';
+    $errors[] = 'Pilihan Biaya / Anggaran tidak valid.';
 }
 
+$budgetAmount = null;
+
+if ($budgetTypeRaw !== null && $budgetTypeRaw !== '') {
+
+    if ($budgetAmountRaw === '' || !is_numeric($budgetAmountRaw)) {
+        $errors[] = 'Nominal Biaya / Anggaran belum diisi.';
+    } else {
+        $budgetAmount = (float) $budgetAmountRaw;
+
+        if ($budgetAmount < 0) {
+            $errors[] = 'Nominal Biaya / Anggaran tidak valid.';
+        }
+    }
+
+} else {
+    $errors[] = 'Biaya / Anggaran belum dipilih.';
+}
+
+/* ------------------------------------------------------------------
+ * 4. Jika validasi gagal
+ * ------------------------------------------------------------------ */
 if ($errors) {
-    // Simpan kembali isian form agar tetap muncul saat halaman dimuat ulang.
+
     $_SESSION['old_crf'] = $_POST;
 
     $_SESSION['flash'] = [
         'type'    => 'danger',
-        'message' => 'CRF belum dapat disimpan. Silakan periksa field yang belum lengkap.',
+        'message' => implode(' ', $errors),
     ];
 
-    header('Location: ../user/form_crf.php');
+    /*
+     * Kalau sedang edit Draft, kembali ke Draft yang sama.
+     * Jangan kembali ke form kosong.
+     */
+    if ($draftId > 0) {
+        header('Location: ../user/form_crf.php?id=' . $draftId);
+    } else {
+        header('Location: ../user/form_crf.php');
+    }
+
     exit;
 }
 
 /* ------------------------------------------------------------------
- * 3. Data otomatis (lihat brief butir 25)
+ * 5. Data otomatis
  * ------------------------------------------------------------------ */
 $today = new DateTime();
 $submissionDate = $today->format('Y-m-d');
-$requestNumber  = generateRequestNumber($pdo, $today);
 
 $toDepartment = 'Departemen Operasional';
 $toDivision   = 'Divisi Otomasi';
 
+/*
+ * Detail kategori wajib tetap berupa string kosong jika memang
+ * tidak diperlukan, karena kolom database bersifat NOT NULL.
+ */
+$changeCategoryDetailValue = $changeCategoryDetail;
+
 /* ------------------------------------------------------------------
- * 4. Simpan ke database
+ * 6. Simpan
  * ------------------------------------------------------------------ */
 try {
+
     $pdo->beginTransaction();
 
-    $stmt = $pdo->prepare(
-        'INSERT INTO change_requests (
-            request_number, user_id, full_name, phone, email, submission_date,
-            to_department, to_division, from_department, from_division,
-            change_description, benefit, impact, reason,
-            budget_type, budget_amount,
-            change_category, change_category_detail,
-            alternative_suggestion,
-            post_implementation_review, implementation,
-            level, status
-        ) VALUES (
-            :request_number, :user_id, :full_name, :phone, :email, :submission_date,
-            :to_department, :to_division, :from_department, :from_division,
-            :change_description, :benefit, :impact, :reason,
-            :budget_type, :budget_amount,
-            :change_category, :change_category_detail,
-            :alternative_suggestion,
-            :post_implementation_review, :implementation,
-            NULL, "Belum Ditindak Lanjuti"
-        )'
-    );
+    /*
+     * ==============================================================
+     * A. SUBMIT DARI DRAFT
+     * ==============================================================
+     */
+    if ($draftId > 0) {
 
-    $stmt->execute([
-        'request_number'             => $requestNumber,
-        'user_id'                    => $user['id'],
-        'full_name'                  => $fullName,
-        'phone'                      => $phone,
-        'email'                      => $email,
-        'submission_date'            => $submissionDate,
-        'to_department'              => $toDepartment,
-        'to_division'                => $toDivision,
-        'from_department'            => $fromDepartment,
-        'from_division'              => $fromDivision,
-        'change_description'         => $changeDescription,
-        'benefit'                    => $benefit,
-        'impact'                     => $impact,
-        'reason'                     => $reason,
-        'budget_type'                => $budgetTypeRaw,
-        'budget_amount'              => $budgetAmount,
-        'change_category'            => $changeCategory,
-        'change_category_detail'     => $changeCategoryDetail !== '' ? $changeCategoryDetail : null,
-        'alternative_suggestion'     => $alternativeSuggestion !== '' ? $alternativeSuggestion : null,
-        'post_implementation_review' => $postImplementation !== '' ? $postImplementation : null,
-        'implementation'             => $implementation !== '' ? $implementation : null,
-    ]);
+        /*
+         * Pastikan Draft memang milik user yang sedang login.
+         */
+        $checkStmt = $pdo->prepare("
+            SELECT id, request_number, status
+            FROM change_requests
+            WHERE id = :id
+              AND user_id = :user_id
+              AND status IN ('Draft', 'Perlu Revisi')
+            LIMIT 1
+        ");
 
-    $crfId = (int) $pdo->lastInsertId();
+        $checkStmt->execute([
+            'id'      => $draftId,
+            'user_id' => $user['id']
+        ]);
 
+        $draft = $checkStmt->fetch();
+
+        if (!$draft) {
+            throw new RuntimeException(
+                'Draft tidak ditemukan atau tidak dapat di-submit.'
+            );
+        }
+
+        /*
+         * Pertahankan Nomor Register yang sudah dimiliki Draft.
+         */
+        $requestNumber = $draft['request_number'];
+
+        $stmt = $pdo->prepare("
+            UPDATE change_requests
+            SET
+                full_name = :full_name,
+                phone = :phone,
+                email = :email,
+                submission_date = :submission_date,
+                to_department = :to_department,
+                to_division = :to_division,
+                from_department = :from_department,
+                from_division = :from_division,
+                change_description = :change_description,
+                benefit = :benefit,
+                impact = :impact,
+                reason = :reason,
+                budget_type = :budget_type,
+                budget_amount = :budget_amount,
+                change_category = :change_category,
+                change_category_detail = :change_category_detail,
+                alternative_suggestion = :alternative_suggestion,
+                status = 'Belum Ditindak Lanjuti'
+            WHERE id = :id
+              AND user_id = :user_id
+              AND status IN ('Draft', 'Perlu Revisi')
+        ");
+
+        $stmt->execute([
+            'full_name'              => $fullName,
+            'phone'                  => $phone,
+            'email'                  => $email,
+            'submission_date'        => $submissionDate,
+            'to_department'          => $toDepartment,
+            'to_division'            => $toDivision,
+            'from_department'        => $fromDepartment,
+            'from_division'          => $fromDivision,
+            'change_description'     => $changeDescription,
+            'benefit'                => $benefit,
+            'impact'                 => $impact,
+            'reason'                 => $reason,
+            'budget_type'            => $budgetTypeRaw,
+            'budget_amount'          => $budgetAmount,
+            'change_category'        => $changeCategory,
+            'change_category_detail' => $changeCategoryDetailValue,
+            'alternative_suggestion' => $alternativeSuggestion,
+            'id'                     => $draftId,
+            'user_id'                => $user['id'],
+        ]);
+
+        $crfId = $draftId;
+
+    /*
+     * ==============================================================
+     * B. SUBMIT FORM BARU
+     * ==============================================================
+     */
+    } else {
+
+        $requestNumber = generateRequestNumber($pdo, $today);
+
+        $stmt = $pdo->prepare("
+            INSERT INTO change_requests (
+                request_number,
+                user_id,
+                full_name,
+                phone,
+                email,
+                submission_date,
+                to_department,
+                to_division,
+                from_department,
+                from_division,
+                change_description,
+                benefit,
+                impact,
+                reason,
+                budget_type,
+                budget_amount,
+                change_category,
+                change_category_detail,
+                alternative_suggestion,
+                level,
+                status
+            ) VALUES (
+                :request_number,
+                :user_id,
+                :full_name,
+                :phone,
+                :email,
+                :submission_date,
+                :to_department,
+                :to_division,
+                :from_department,
+                :from_division,
+                :change_description,
+                :benefit,
+                :impact,
+                :reason,
+                :budget_type,
+                :budget_amount,
+                :change_category,
+                :change_category_detail,
+                :alternative_suggestion,
+                NULL,
+                'Belum Ditindak Lanjuti'
+            )
+        ");
+
+        $stmt->execute([
+            'request_number'          => $requestNumber,
+            'user_id'                => $user['id'],
+            'full_name'              => $fullName,
+            'phone'                  => $phone,
+            'email'                  => $email,
+            'submission_date'        => $submissionDate,
+            'to_department'          => $toDepartment,
+            'to_division'            => $toDivision,
+            'from_department'        => $fromDepartment,
+            'from_division'          => $fromDivision,
+            'change_description'     => $changeDescription,
+            'benefit'                => $benefit,
+            'impact'                 => $impact,
+            'reason'                 => $reason,
+            'budget_type'            => $budgetTypeRaw,
+            'budget_amount'          => $budgetAmount,
+            'change_category'        => $changeCategory,
+            'change_category_detail' => $changeCategoryDetailValue,
+            'alternative_suggestion' => $alternativeSuggestion,
+        ]);
+
+        $crfId = (int) $pdo->lastInsertId();
+    }
+
+    /* ------------------------------------------------------------------
+     * 7. Upload attachment
+     * ------------------------------------------------------------------ */
     $uploadErrors = handleAttachmentUploads(
         $pdo,
         $crfId,
@@ -193,26 +379,59 @@ try {
 
     $pdo->commit();
 
+    /* ------------------------------------------------------------------
+     * 8. Pesan sukses
+     * ------------------------------------------------------------------ */
     if ($uploadErrors) {
+
         $_SESSION['flash'] = [
             'type'    => 'warning',
-            'message' => 'CRF berhasil diajukan dengan Nomor Register ' . $requestNumber
-                . ', namun ada file yang gagal diupload: ' . implode(' ', $uploadErrors),
+            'message' => 'CRF berhasil diajukan dengan Nomor Register '
+                . $requestNumber
+                . ', namun ada file yang gagal diupload: '
+                . implode(' ', $uploadErrors),
         ];
+
     } else {
+
         $_SESSION['flash'] = [
             'type'    => 'success',
-            'message' => 'CRF berhasil diajukan dengan Nomor Register ' . $requestNumber . '.',
+            'message' => 'CRF berhasil diajukan dengan Nomor Register '
+                . $requestNumber
+                . '.',
         ];
     }
+
 } catch (Throwable $e) {
-    $pdo->rollBack();
+
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
     error_log('submit_crf error: ' . $e->getMessage());
+
+    $_SESSION['old_crf'] = $_POST;
+
     $_SESSION['flash'] = [
         'type'    => 'danger',
         'message' => 'Terjadi kesalahan saat menyimpan CRF. Silakan coba lagi.',
     ];
+
+    /*
+     * Kalau error saat Edit Draft,
+     * tetap kembali ke Draft yang sama agar data tidak hilang.
+     */
+    if ($draftId > 0) {
+        header('Location: ../user/form_crf.php?id=' . $draftId);
+    } else {
+        header('Location: ../user/form_crf.php');
+    }
+
+    exit;
 }
 
-header('Location: ../user/form_crf.php');
+/* ------------------------------------------------------------------
+ * 9. Setelah Submit berhasil
+ * ------------------------------------------------------------------ */
+header('Location: ../user/pengajuan_saya.php');
 exit;
