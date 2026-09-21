@@ -12,8 +12,10 @@
  * ---------------------------------------------------------------
  */
 
-require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
+
+requireAdmin();
 
 $pdo = getConnection();
 $id  = (int) ($_GET['id'] ?? 0);
@@ -23,6 +25,7 @@ $stmt = $pdo->prepare(
     FROM change_requests cr
     JOIN users u ON u.id = cr.user_id
     WHERE cr.id = :id
+      AND cr.status <> \'Draft\'
     LIMIT 1'
 );
 

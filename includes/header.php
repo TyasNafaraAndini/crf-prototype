@@ -7,6 +7,8 @@
  * ---------------------------------------------------------------
  */
 
+require_once __DIR__ . '/auth.php';
+
 if (!isset($pageTitle)) {
     $pageTitle = 'CRF Prototype';
 }
@@ -17,6 +19,7 @@ $currentPath = basename($_SERVER['PHP_SELF'] ?? '');
 $isDashboard = $currentPath === 'dashboard.php';
 $isForm = $currentPath === 'form_crf.php';
 $isPengajuanSaya = $currentPath === 'pengajuan_saya.php';
+$isAdminUser = isAdmin();
 
 $scriptPath = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
 $appBasePath = preg_replace('#/(?:admin|user)/[^/]+$#', '', $scriptPath) ?: '';
@@ -76,6 +79,7 @@ $appBasePath = rtrim($appBasePath, '/');
         aria-label="Navigasi utama"
     >
 
+            <?php if ($isAdminUser): ?>
       <!-- DASHBOARD -->
       <a
         class="<?= $isDashboard ? 'active' : '' ?>"
@@ -84,6 +88,7 @@ $appBasePath = rtrim($appBasePath, '/');
         <i class="bi bi-grid-1x2-fill"></i>
         <span>Dashboard</span>
       </a>
+      <?php endif; ?>
 
 
       <!-- FORM CRF -->
@@ -103,7 +108,7 @@ $appBasePath = rtrim($appBasePath, '/');
       >
         <i class="bi bi-file-earmark-check"></i>
         <span>Pengajuan Saya</span>
-      </a>
+      </a> 
 
     </nav>
 

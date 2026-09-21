@@ -22,8 +22,10 @@
  * ---------------------------------------------------------------
  */
 
-require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
+
+requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
@@ -119,6 +121,7 @@ $stmt = $pdo->prepare(
         cancelled_at
      FROM change_requests
      WHERE id = :id
+            AND status <> \'Draft\'
      LIMIT 1'
 );
 

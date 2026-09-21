@@ -7,12 +7,14 @@
  * ---------------------------------------------------------------
  */
 
-require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
+
+requireLogin();
 
 $pdo = getConnection();
 
@@ -21,6 +23,11 @@ $id = (int) ($_GET['id'] ?? 0);
 if ($id <= 0) {
     http_response_code(400);
     exit('ID CRF tidak valid.');
+}
+
+if (!canAccessCrf($pdo, $id)) {
+    http_response_code(403);
+    exit('Anda tidak memiliki akses ke CRF ini.');
 }
 
 /* ---------------------------------------------------------------
