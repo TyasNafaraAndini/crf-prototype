@@ -620,6 +620,8 @@ require_once __DIR__ . '/../includes/header.php';
                                 value="<?= (int) $crf['id'] ?>"
                             >
 
+                                  <?= csrfField() ?>
+
 
                             <!-- POST IMPLEMENTATION REVIEW -->
                             <div class="mb-4">

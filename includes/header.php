@@ -131,7 +131,7 @@ $appBasePath = rtrim($appBasePath, '/');
     <!-- FOOTER SIDEBAR -->
     <div class="crf-sidebar-footer">
 
-        <a href="<?= h($appBasePath) ?>/">
+        <a href="<?= h($appBasePath) ?>/actions/logout.php">
             <i class="bi bi-box-arrow-left"></i>
             Keluar
         </a>

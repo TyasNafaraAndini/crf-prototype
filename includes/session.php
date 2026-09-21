@@ -62,3 +62,5 @@ function h(?string $value): string
 {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
+
+require_once __DIR__ . '/csrf.php';
