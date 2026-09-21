@@ -168,7 +168,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="d-flex gap-2 mb-4">
 
             <span class="crf-badge <?= levelBadgeClass($crf['level']) ?>">
-                Level Complain:
+                Level Urgensi:
                 <?= h($crf['level'] ?? 'Belum ditentukan') ?>
             </span>
 

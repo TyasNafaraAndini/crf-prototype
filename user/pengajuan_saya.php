@@ -5,6 +5,31 @@ require_once __DIR__ . '/../includes/functions.php';
 $user = getCurrentUser();
 $pdo = getConnection();
 
+/*
+ * =========================================================
+ * Ringkasan Pengajuan Saya
+ * Draft tidak dihitung sebagai pengajuan resmi.
+ * =========================================================
+ */
+$summaryStmt = $pdo->prepare("
+    SELECT
+        COUNT(*) AS total,
+        SUM(status = 'Belum Ditindak Lanjuti') AS pending,
+        SUM(status = 'Perlu Revisi') AS revision,
+        SUM(status = 'Dalam Proses') AS processing,
+        SUM(status = 'Solve') AS solved,
+        SUM(status = 'Cancel') AS cancelled
+    FROM change_requests
+    WHERE user_id = :user_id
+      AND status <> 'Draft'
+");
+
+$summaryStmt->execute([
+    'user_id' => $user['id']
+]);
+
+$summary = $summaryStmt->fetch();
+
 /* =========================================================
  * Pencarian dan Filter
  * ========================================================= */
@@ -69,12 +94,14 @@ if ($search !== '') {
 
     $where[] = '(
         request_number LIKE :search_request
+        OR full_name LIKE :search_name
         OR change_description LIKE :search_description
     )';
 
     $searchValue = '%' . $search . '%';
 
     $params['search_request'] = $searchValue;
+    $params['search_name'] = $searchValue;
     $params['search_description'] = $searchValue;
 }
 
@@ -100,6 +127,54 @@ if ($categoryFilter !== '') {
 }
 
 
+/* =========================================================
+ * Pagination
+ * ========================================================= */
+
+$perPage = 10;
+
+$page = max(
+    1,
+    (int) ($_GET['page'] ?? 1)
+);
+
+
+/* =========================================================
+ * Hitung total data
+ * ========================================================= */
+
+$countSql = "
+    SELECT COUNT(*)
+    FROM change_requests
+    WHERE " . implode(' AND ', $where);
+
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($params);
+
+$totalRows = (int) $countStmt->fetchColumn();
+
+$totalPages = max(
+    1,
+    (int) ceil($totalRows / $perPage)
+);
+
+
+/*
+ * Kalau page yang diminta melebihi halaman terakhir,
+ * arahkan ke halaman terakhir.
+ */
+if ($page > $totalPages) {
+    $page = $totalPages;
+}
+
+
+$offset = ($page - 1) * $perPage;
+
+
+/* =========================================================
+ * Ambil data sesuai halaman
+ * ========================================================= */
+
 $sql = "
     SELECT
         id,
@@ -113,6 +188,7 @@ $sql = "
     FROM change_requests
     WHERE " . implode(' AND ', $where) . "
     ORDER BY id DESC
+    LIMIT {$perPage} OFFSET {$offset}
 ";
 
 $stmt = $pdo->prepare($sql);
@@ -153,7 +229,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <h1>Pengajuan Saya</h1>
 
                 <p class="text-muted mb-0">
-                    Daftar Change Request Form yang telah Anda ajukan.
+                    Ringkasan Pengajuan Saya.
                 </p>
             </div>
 
@@ -163,6 +239,60 @@ require_once __DIR__ . '/../includes/header.php';
             >
                 + Buat Pengajuan
             </a>
+
+        </div>
+
+        <!-- =========================================================
+            RINGKASAN PENGAJUAN SAYA
+            ========================================================= -->
+
+        <div class="mb-4">
+
+            <div class="crf-stat-grid crf-user-stat-grid">
+
+                <div class="crf-stat-card">
+                    <span>Total Pengajuan</span>
+                    <strong>
+                        <?= (int) ($summary['total'] ?? 0) ?>
+                    </strong>
+                </div>
+
+                <div class="crf-stat-card">
+                    <span>Belum Ditindak Lanjuti</span>
+                    <strong>
+                        <?= (int) ($summary['pending'] ?? 0) ?>
+                    </strong>
+                </div>
+
+                <div class="crf-stat-card">
+                    <span>Perlu Revisi</span>
+                    <strong>
+                        <?= (int) ($summary['revision'] ?? 0) ?>
+                    </strong>
+                </div>
+
+                <div class="crf-stat-card">
+                    <span>Dalam Proses</span>
+                    <strong>
+                        <?= (int) ($summary['processing'] ?? 0) ?>
+                    </strong>
+                </div>
+
+                <div class="crf-stat-card">
+                    <span>Selesai</span>
+                    <strong>
+                        <?= (int) ($summary['solved'] ?? 0) ?>
+                    </strong>
+                </div>
+
+                <div class="crf-stat-card">
+                    <span>Dibatalkan</span>
+                    <strong>
+                        <?= (int) ($summary['cancelled'] ?? 0) ?>
+                    </strong>
+                </div>
+
+            </div>
 
         </div>
 
@@ -200,7 +330,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     type="text"
                                     name="search"
                                     class="form-control"
-                                    placeholder="Cari Nomor Register atau perubahan..."
+                                    placeholder="Cari Nomor Register atau Nama Pengaju..."
                                     value="<?= h($search) ?>"
                                 >
                             </div>
@@ -277,7 +407,7 @@ require_once __DIR__ . '/../includes/header.php';
                                     <th>Nomor Register</th>
                                     <th>Pengaju</th>
                                     <th>Tanggal Pengajuan</th>
-                                    <th>Level Complain</th>
+                                    <th>Level Urgensi</th>
                                     <th>Status</th>
                                     <th>Perubahan yang Diminta</th>
                                     <th>Tanggapan / Tindak Lanjut</th>
@@ -294,7 +424,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                                     <!-- NO -->
                                     <td>
-                                        <?= $index + 1 ?>
+                                        <?= $offset + $index + 1 ?>
                                     </td>
 
 
@@ -386,37 +516,59 @@ require_once __DIR__ . '/../includes/header.php';
 
 
                                    <!-- AKSI -->
-                                    <td style="white-space: nowrap;">
+                                <td style="white-space: nowrap;">
 
-                                        <div class="d-flex gap-2">
+                                    <div class="d-flex gap-2">
+
+                                        <!-- DETAIL -->
+                                        <a
+                                            href="detail.php?id=<?= (int) $row['id'] ?>"
+                                            class="btn btn-sm btn-primary"
+                                        >
+                                            Detail
+                                        </a>
+
+
+                                        <!-- CETAK / EXPORT PDF -->
+                                        <?php if (
+                                            $row['status'] !== 'Draft'
+                                            && $row['status'] !== 'Perlu Revisi'
+                                        ): ?>
 
                                             <a
-                                                href="detail.php?id=<?= (int) $row['id'] ?>"
-                                                class="btn btn-sm btn-primary"
+                                                href="../actions/export_crf.php?id=<?= (int) $row['id'] ?>"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                target="_blank"
+                                                title="Cetak PDF"
                                             >
-                                                Detail
+                                                <i class="bi bi-printer"></i>
+                                                Cetak
                                             </a>
 
-                                            <?php if (
-                                                $row['status'] === 'Draft'
-                                                || $row['status'] === 'Perlu Revisi'
-                                            ): ?>
+                                        <?php endif; ?>
 
-                                                <a
-                                                    href="form_crf.php?id=<?= (int) $row['id'] ?>"
-                                                    class="btn btn-sm btn-warning"
-                                                >
-                                                    <?= $row['status'] === 'Perlu Revisi'
-                                                        ? 'Edit & Kirim Ulang'
-                                                        : 'Edit'
-                                                    ?>
-                                                </a>
 
-                                            <?php endif; ?>
+                                        <!-- EDIT / KIRIM ULANG -->
+                                        <?php if (
+                                            $row['status'] === 'Draft'
+                                            || $row['status'] === 'Perlu Revisi'
+                                        ): ?>
 
-                                        </div>
+                                            <a
+                                                href="form_crf.php?id=<?= (int) $row['id'] ?>"
+                                                class="btn btn-sm btn-warning"
+                                            >
+                                                <?= $row['status'] === 'Perlu Revisi'
+                                                    ? 'Edit'
+                                                    : 'Edit'
+                                                ?>
+                                            </a>
 
-                                    </td>
+                                        <?php endif; ?>
+
+                                    </div>
+
+                                </td>
 
                                 </tr>
 
@@ -427,6 +579,73 @@ require_once __DIR__ . '/../includes/header.php';
                         </table>
 
                     </div>
+
+                    <?php if ($totalPages > 1): ?>
+
+                        <nav aria-label="Pagination pengajuan" class="mt-3">
+
+                            <ul class="pagination justify-content-end mb-0">
+
+                                <?php
+                                $prevParams = $_GET;
+                                $prevParams['page'] = max(1, $page - 1);
+
+                                $nextParams = $_GET;
+                                $nextParams['page'] = min($totalPages, $page + 1);
+                                ?>
+
+                                <!-- Previous -->
+                                <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+
+                                    <a
+                                        class="page-link"
+                                        href="?<?= h(http_build_query($prevParams)) ?>"
+                                        aria-label="Previous"
+                                    >
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+
+                                </li>
+
+
+                                <!-- Nomor halaman -->
+                                <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+
+                                    <?php
+                                    $pageParams = $_GET;
+                                    $pageParams['page'] = $p;
+                                    ?>
+
+                                    <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+
+                                        <a
+                                            class="page-link"
+                                            href="?<?= h(http_build_query($pageParams)) ?>"
+                                        >
+                                            <?= $p ?>
+                                        </a>
+
+                                    </li>
+
+                                <?php endfor; ?>
+
+
+                                <!-- Next -->
+                                <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+
+                                    <a
+                                        class="page-link"
+                                        href="?<?= h(http_build_query($nextParams)) ?>"
+                                        aria-label="Next"
+                                    >
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+
+                                </ul>
+
+                        </nav>
+
+                    <?php endif; ?> </li>
 
                 <?php endif; ?>
 
