@@ -11,7 +11,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-requireLogin();
+requireAdmin();
 
 $pdo = getConnection();
 
@@ -21,6 +21,7 @@ $stmt = $pdo->prepare(
     'SELECT cr.*
      FROM change_requests cr
      WHERE cr.id = :id
+       AND cr.status <> \'Draft\'
      LIMIT 1'
 );
 

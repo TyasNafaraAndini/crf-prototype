@@ -1,7 +1,14 @@
 <?php
+/**
+ * actions/download_attachment.php
+ * Download lampiran CRF. Hanya untuk pemilik CRF atau admin
+ * (untuk CRF yang sudah diajukan, bukan Draft).
+ */
 
-require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
+
+requireLogin();
 
 $pdo = getConnection();
 
@@ -13,7 +20,7 @@ if ($id <= 0) {
 }
 
 $stmt = $pdo->prepare(
-    'SELECT original_name, file_path, file_type, file_size
+    'SELECT change_request_id, original_name, file_path, file_type, file_size
      FROM attachments
      WHERE id = :id
      LIMIT 1'
@@ -25,6 +32,11 @@ $file = $stmt->fetch();
 if (!$file) {
     http_response_code(404);
     exit('File tidak ditemukan.');
+}
+
+if (!canAccessCrf($pdo, (int) $file['change_request_id'])) {
+    http_response_code(403);
+    exit('Anda tidak memiliki akses ke file ini.');
 }
 
 $fileUrl = $file['file_path'];
@@ -47,12 +59,17 @@ $curlError = curl_error($ch);
 curl_close($ch);
 
 if ($fileContent === false || $httpCode !== 200) {
+    error_log('download_attachment error: ' . $curlError . ' (HTTP ' . $httpCode . ')');
     http_response_code(500);
-    exit('Gagal mengambil file dari Wasabi. ' . $curlError);
+    exit('Gagal mengambil file. Silakan coba lagi atau hubungi administrator.');
 }
 
-// Nama file untuk hasil download
-$downloadName = basename($file['original_name']);
+// Nama file untuk hasil download (buang karakter yang bisa merusak header)
+$downloadName = str_replace(
+    ['"', '\\', "\r", "\n"],
+    '',
+    basename($file['original_name'])
+);
 
 header('Content-Type: ' . ($file['file_type'] ?: 'application/octet-stream'));
 header('Content-Disposition: attachment; filename="' . $downloadName . '"');
