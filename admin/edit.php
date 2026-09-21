@@ -3,7 +3,7 @@
  * admin/edit.php
  * ---------------------------------------------------------------
  * Halaman bagi admin untuk mengelola CRF:
- *   - Menentukan Level Complain
+ *   - Menentukan Level Urgensi
  *   - Mengubah Status
  *   - Mengisi Tanggapan / Tindak Lanjut
  *
@@ -180,7 +180,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?= csrfField() ?>
 
 
-      <!-- LEVEL COMPLAIN -->
+      <!-- LEVEL URGENT -->
       <div class="crf-section">
 
         <div class="crf-section-header">
@@ -189,15 +189,15 @@ require_once __DIR__ . '/../includes/header.php';
             <i class="bi bi-flag"></i>
           </span>
 
-          <h2>Level Complain</h2>
+          <h2>Level Urgensi</h2>
 
         </div>
 
         <div class="crf-section-body">
 
-          <p class="crf-hint">
-            Catatan: Level Complain di prototype ini berbeda dengan Level Urgensi pada dokumen CRF perusahaan.
-          </p>
+          <!-- <p class="crf-hint">
+            Catatan: Level Urgensi di prototype ini berbeda dengan Level Urgensi pada dokumen CRF perusahaan.
+          </p> -->
 
           <select
             name="level"

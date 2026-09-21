@@ -146,7 +146,7 @@ if (!$attachments) {
 }
 
 /* ---------------------------------------------------------------
- * Level complain
+ * Level Urgensi
  * --------------------------------------------------------------- */
 $levelDisplay = !empty($crf['level'])
     ? $crf['level']
@@ -516,7 +516,7 @@ $html = '
     </table>
 
     <div class="status-box">
-        <strong>Level Complain:</strong>
+        <strong>Level Urgensi:</strong>
         ' . pdfValue($levelDisplay) . '
         &nbsp;&nbsp;&nbsp;
         <strong>Status:</strong>

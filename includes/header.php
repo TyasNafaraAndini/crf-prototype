@@ -61,12 +61,12 @@ $appBasePath = rtrim($appBasePath, '/');
         class="crf-sidebar-brand"
         href="<?= h($appBasePath) ?>/user/form_crf.php"
     >
-        <span class="crf-sidebar-mark">
-            <i class="bi bi-file-earmark-text"></i>
-        </span>
+    <span class="crf-sidebar-mark">
+      <i class="bi bi-house-door-fill"></i>
+    </span>
 
-        <span>SIAP PPU</span>
-    </a>
+    <span class="ppu-brand-text">CRF</span>
+    </a>  
 
 
     <div class="crf-sidebar-section">
@@ -130,41 +130,25 @@ $appBasePath = rtrim($appBasePath, '/');
 
     <header class="crf-topbar">
 
-      <div class="crf-breadcrumb">
+    <!-- KANAN -->
+    <div class="crf-user">
 
-        <strong>SIAP PPU</strong>
+      <strong>
+          <?= h($currentUser['nama'] ?? '-') ?>
+      </strong>
 
-        <span>Menu Saya</span>
+      <span class="crf-avatar">
+          <?= h(
+              strtoupper(
+                  substr(
+                      $currentUser['nama'] ?? 'U',
+                      0,
+                      2
+                  )
+              )
+          ) ?>
+      </span>
 
-        <i class="bi bi-chevron-right"></i>
+    </div>
 
-        <span><?= h($pageTitle) ?></span>
-
-      </div>
-
-
-      <div class="crf-user">
-
-        <strong>
-            <?= h($currentUser['nama'] ?? '-') ?>
-        </strong>
-
-        <small>
-            <?= h($currentUser['dept'] ?? '-') ?>
-        </small>
-
-        <span class="crf-avatar">
-            <?= h(
-                strtoupper(
-                    substr(
-                        $currentUser['nama'] ?? 'U',
-                        0,
-                        2
-                    )
-                )
-            ) ?>
-        </span>
-
-      </div>
-
-    </header>
+  </header>

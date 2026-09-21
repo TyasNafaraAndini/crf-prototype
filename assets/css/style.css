@@ -33,14 +33,37 @@ body {
 /* ---------- Corporate application shell ---------- */
 .crf-app-shell { min-height: 100vh; display: flex; }
 .crf-sidebar {
-  width: 207px; flex: 0 0 207px; background: #E5E7EB; color: #374151;
-  display: flex; flex-direction: column; min-height: 100vh;
+  width: 207px;
+  height: 100vh;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  background: #E5E7EB;
+  color: #374151;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-y: auto;
+
+  z-index: 1000;
 }
 .crf-sidebar-brand {
   height: 58px; background: #1c8fdb; display: flex; align-items: center; gap: 0.55rem; padding: 0 1.2rem;
   color: #1F2937; text-decoration: none; font-weight: 700; border-bottom: 1px solid #D1D5DB;
 }
 .crf-sidebar-mark { color: #fff; font-size: 1rem; }
+.ppu-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: block;
+}
+.ppu-brand-text {
+    color: #ffffff;
+}
 .crf-sidebar-section { padding: 1.15rem 1.05rem 0.45rem; font-size: 0.72rem; color: #718096; }
 .crf-sidebar-nav a {
   display: flex; gap: 0.65rem; align-items: center; padding: 0.58rem 1.05rem;
@@ -50,16 +73,45 @@ body {
 .crf-sidebar-nav a.active { border-right: 3px solid #3498DB; }
 .crf-sidebar-footer { margin-top: auto; padding: 1rem 1.05rem; border-top: 1px solid #303b4d; }
 .crf-sidebar-footer a { color: #f87171; text-decoration: none; font-size: 0.78rem; }
-.crf-content-shell { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.crf-content-shell {
+  min-width: 0;
+
+  margin-left: 207px;
+
+  width: calc(100% - 207px);
+
+  display: flex;
+  flex-direction: column;
+}
 .crf-topbar {
-  height: 58px; background: #1c8fdb; color: #fff; display: flex; align-items: center;
-  justify-content: space-between; padding: 0 1.35rem;
+  height: 58px;
+
+  position: sticky;
+  top: 0;
+
+  background: #1c8fdb;
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  padding: 0 1.35rem;
+
+  z-index: 900;
 }
 .crf-breadcrumb { display: flex; align-items: center; gap: 0.65rem; font-size: 0.76rem; }
 .crf-breadcrumb strong { font-size: 0.9rem; }
 .crf-breadcrumb span { color: #ced6e3; }
 .crf-breadcrumb i { color: #8493aa; font-size: 0.65rem; }
-.crf-user { display: flex; align-items: center; gap: 0.65rem; text-align: right; font-size: 0.74rem; }
+.crf-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-align: right;
+  font-size: 0.74rem;
+}
 .crf-user small { display: block; color: #c5cfde; font-size: 0.63rem; }
 .crf-avatar { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: #53627d; font-size: 0.72rem; }
 .crf-content-shell > .crf-footer { margin-top: auto; }
@@ -266,7 +318,14 @@ textarea.form-control {
 }
 
 @media (max-width: 768px) {
-  .crf-sidebar { width: 58px; flex-basis: 58px; }
+  .crf-sidebar {
+    width: 58px;
+    height: 100vh;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
   .crf-sidebar-brand { padding: 0; justify-content: center; }
   .crf-sidebar-brand > span:last-child, .crf-sidebar-section, .crf-sidebar-nav span, .crf-sidebar-footer a { display: none; }
   .crf-sidebar-nav a { justify-content: center; padding: 0.75rem 0; }
@@ -295,7 +354,7 @@ textarea.form-control {
     white-space: nowrap;
 }
 
-/* Level Complain */
+/* Level Urgensi */
 .crf-table td:nth-child(8) {
     min-width: 110px;
 }
