@@ -3,7 +3,7 @@
  * actions/update_crf.php
  * ---------------------------------------------------------------
  * Menangani penyimpanan dari admin/edit.php:
- *   - Level Complain (Tinggi / Normal / Rendah)
+ *   - Level Urgensi (Tinggi / Normal / Rendah)
  *   - Status
  *     (Belum Ditindak Lanjuti / Dalam Proses / Solve / Cancel)
  *   - Tanggapan / Tindak Lanjut
@@ -85,6 +85,24 @@ $status = in_array(
         $_SESSION['flash'] = [
             'type' => 'danger',
             'message' => 'Tanggapan / Tindak Lanjut wajib diisi jika status Perlu Revisi.'
+        ];
+
+        header(
+            'Location: ../admin/edit.php?id='
+            . $id
+        );
+
+        exit;
+    }
+
+    if (
+        $status === 'Cancel'
+        && $tanggapan === ''
+    ) {
+
+        $_SESSION['flash'] = [
+            'type' => 'danger',
+            'message' => 'Tanggapan / Tindak Lanjut wajib diisi jika status Dibatalkan.'
         ];
 
         header(

@@ -3,7 +3,7 @@
  * admin/detail.php
  * ---------------------------------------------------------------
  * Menampilkan seluruh isi satu pengajuan CRF (lihat brief butir 20).
- * Halaman ini read-only; perubahan Level Complain / Status / PIR /
+ * Halaman ini read-only; perubahan Level Urgensi / Status / PIR /
  * Implementasi dilakukan di admin/edit.php.
  * ---------------------------------------------------------------
  */
@@ -103,7 +103,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <div class="d-flex gap-2 mb-4">
       <span class="crf-badge <?= levelBadgeClass($crf['level']) ?>">
-        Level Complain: <?= h($crf['level'] ?? 'Belum ditentukan') ?>
+        Level Urgensi: <?= h($crf['level'] ?? 'Belum ditentukan') ?>
       </span>
       <span class="crf-badge <?= statusBadgeClass($crf['status']) ?>">
         Status: <?= h(statusLabel($crf['status'])) ?>
