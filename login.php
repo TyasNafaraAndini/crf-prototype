@@ -164,7 +164,9 @@ unset($_SESSION['login_error']);
     <div class="login-info">
         <strong>Prototype:</strong><br>
         User ID: USER001<br>
-        Password: password
+        Password: password <br>
+        Admin ID: ADMIN001<br>
+        Password: password  
     </div>
 
 </div>
