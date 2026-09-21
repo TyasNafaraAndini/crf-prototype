@@ -164,6 +164,24 @@ if (!$current) {
 
 $currentStatus = $current['status'];
 
+/*
+ * Tolak perpindahan status yang tidak diperbolehkan.
+ */
+if (!canChangeStatus($currentStatus, $status)) {
+
+    $_SESSION['flash'] = [
+        'type' => 'danger',
+        'message' =>
+            'Perubahan status dari "'
+            . statusLabel($currentStatus)
+            . '" ke "'
+            . statusLabel($status)
+            . '" tidak diperbolehkan.'
+    ];
+
+    header('Location: ../admin/edit.php?id=' . $id);
+    exit;
+}
 
 /*
  * Pertahankan timestamp yang sudah ada.

@@ -56,7 +56,7 @@ $today = new DateTime();
 $tanggalDisplay   = formatTanggalIndonesia($today);
 $previewRequestNo = !empty($draftData['request_number'])
     ? $draftData['request_number']
-    : generateRequestNumber($pdo, $today);
+    : previewRequestNumber($pdo, $today);
 
 $toDepartment = 'Departemen Operasional';
 $toDivision   = 'Divisi Otomasi';
