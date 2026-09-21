@@ -177,6 +177,8 @@ require_once __DIR__ . '/../includes/header.php';
         value="<?= (int) $crf['id'] ?>"
       >
 
+            <?= csrfField() ?>
+
 
       <!-- LEVEL COMPLAIN -->
       <div class="crf-section">

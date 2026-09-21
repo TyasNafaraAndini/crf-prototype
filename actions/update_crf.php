@@ -33,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+verifyCsrf();
+
 $pdo = getConnection();
 $admin = getCurrentUser();
 
