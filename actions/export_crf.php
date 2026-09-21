@@ -564,7 +564,9 @@ $html = '
                 <div class="process-table-date">
                     ' . (
                         !empty($crf['approval_at'])
-                            ? date('d-m-Y', strtotime($crf['approval_at']))
+                            ? formatTanggalIndonesia(
+                                new DateTime($crf['approval_at'])
+                            )
                             : '-'
                     ) . '
                 </div>
