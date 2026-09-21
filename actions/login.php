@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../includes/session.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../config/database.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -53,5 +53,10 @@ session_regenerate_id(true);
 $_SESSION['user_id'] = (int) $user['id'];
 $_SESSION['active_user'] = $user;
 
-header('Location: ../user/form_crf.php');
+if (isAdmin()) {
+    header('Location: ../admin/dashboard.php');
+} else {
+    header('Location: ../user/form_crf.php');
+}
+
 exit;
