@@ -244,7 +244,10 @@ textarea.form-control {
 }
 
 /* ---------- Badges: Status & Level ---------- */
-.badge-status-draft   { background-color: var(--crf-gray-300); color: var(--crf-gray-900); }
+.badge-status-draft {
+    background-color: #E0F2FE;
+    color: #0369A1;
+}
 .badge-status-proses  { background-color: #FFF1D6; color: var(--crf-amber); }
 .badge-status-solve   { background-color: #DFF3E4; color: var(--crf-green); }
 .badge-status-cancel  { background-color: #FBE3E1; color: var(--crf-red); }
