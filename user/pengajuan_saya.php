@@ -580,6 +580,24 @@ require_once __DIR__ . '/../includes/header.php';
 
                                         <?php endif; ?>
 
+                                                                                <!-- HAPUS DRAFT -->
+                                        <?php if ($row['status'] === 'Draft'): ?>
+
+                                            <form
+                                                action="../actions/delete_draft.php"
+                                                method="POST"
+                                                onsubmit="return confirm('Hapus draft ini? Tindakan ini tidak bisa dibatalkan.');"
+                                                class="d-inline"
+                                            >
+                                                <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
+                                                <?= csrfField() ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    Hapus
+                                                </button>
+                                            </form>
+
+                                        <?php endif; ?>
+
                                     </div>
 
                                 </td>
