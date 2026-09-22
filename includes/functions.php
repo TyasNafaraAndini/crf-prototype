@@ -43,7 +43,24 @@ function generateRequestNumber(PDO $pdo, DateTime $date): string
 {
     $stmt = $pdo->prepare(
         'UPDATE crf_sequence
-         SET last_number = LAST_INSERT_ID(last_number + 1)
+         SET last_number = LAST_INSERT_ID(
+             GREATEST(
+                 last_number,
+                 COALESCE((
+                     SELECT MAX(
+                         CAST(
+                             SUBSTRING_INDEX(
+                                 SUBSTRING_INDEX(request_number, ".", 3),
+                                 ".",
+                                 -1
+                             ) AS UNSIGNED
+                         )
+                     )
+                     FROM change_requests
+                     WHERE request_number LIKE "PPU-02.4.%"
+                 ), 0)
+             ) + 1
+         )
          WHERE id = 1'
     );
 

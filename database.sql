@@ -58,7 +58,11 @@ CREATE TABLE change_requests (
     request_number              VARCHAR(50)     NOT NULL UNIQUE,
     user_id                     INT UNSIGNED    NOT NULL,
 
-    submission_date             DATE            NOT NULL,
+    full_name                   VARCHAR(150)    NOT NULL,
+    phone                       VARCHAR(25)     NOT NULL,
+    email                       VARCHAR(150)    NOT NULL,
+
+    submission_date             DATE            NULL,
 
     to_department               VARCHAR(150)    NOT NULL,
     to_division                 VARCHAR(150)    NULL,
@@ -90,7 +94,9 @@ CREATE TABLE change_requests (
 
     level                       ENUM('Tinggi','Normal','Rendah') NULL DEFAULT NULL,
     status                      ENUM(
+                                    'Draft',
                                     'Belum Ditindak Lanjuti',
+                                    'Perlu Revisi',
                                     'Dalam Proses',
                                     'Solve',
                                     'Cancel'
@@ -112,6 +118,17 @@ CREATE TABLE change_requests (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+-- Tabel: crf_sequence
+-- Penghitung nomor register yang aman untuk pengajuan bersamaan.
+-- ---------------------------------------------------------------------
+CREATE TABLE crf_sequence (
+    id          TINYINT UNSIGNED PRIMARY KEY,
+    last_number SMALLINT UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+INSERT INTO crf_sequence (id, last_number) VALUES (1, 0);
+
+-- ---------------------------------------------------------------------
 -- Tabel: attachments
 -- Bukti dan informasi pendukung yang diupload user. Satu CRF bisa
 -- punya beberapa file, karena itu dipisah ke tabel sendiri.
@@ -127,6 +144,23 @@ CREATE TABLE attachments (
     uploaded_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_attachment_crf
+        FOREIGN KEY (change_request_id) REFERENCES change_requests(id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- Tabel: crf_activity_logs
+-- Timeline aktivitas setiap pengajuan CRF.
+-- ---------------------------------------------------------------------
+CREATE TABLE crf_activity_logs (
+    id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    change_request_id   INT UNSIGNED NOT NULL,
+    activity            VARCHAR(100) NOT NULL,
+    description         TEXT         NOT NULL,
+    actor               VARCHAR(150) NOT NULL,
+    created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_activity_crf
         FOREIGN KEY (change_request_id) REFERENCES change_requests(id)
         ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
@@ -176,5 +210,4 @@ INSERT INTO users (
     'admin@ppu.test',
     NULL
 );
-
 
