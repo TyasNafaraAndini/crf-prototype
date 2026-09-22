@@ -468,7 +468,7 @@ require_once __DIR__ . '/../includes/header.php';
                                        if ($status === 'Belum Ditindak Lanjuti') {
                                             $badge = 'secondary';
                                         } elseif ($status === 'Perlu Revisi') {
-                                            $badge = 'warning';
+                                            $badge = 'revisi';
                                         } elseif ($status === 'Dalam Proses') {
                                             $badge = 'warning';
                                         } elseif ($status === 'Solve') {
@@ -480,9 +480,19 @@ require_once __DIR__ . '/../includes/header.php';
                                         }
                                         ?>
 
-                                        <span class="badge bg-<?= $badge ?>">
-                                            <?= h($status) ?>
-                                        </span>
+                                        <?php if ($status === 'Perlu Revisi'): ?>
+
+                                            <span class="badge crf-badge badge-status-revisi">
+                                                <?= h($status) ?>
+                                            </span>
+
+                                        <?php else: ?>
+
+                                            <span class="badge bg-<?= $badge ?>">
+                                                <?= h($status) ?>
+                                            </span>
+
+                                        <?php endif; ?>
 
                                     </td>
 

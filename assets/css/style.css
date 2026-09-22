@@ -477,3 +477,8 @@ textarea.form-control {
     color: #6c757d;
     font-size: 13px;
 }
+
+.badge-status-revisi {
+    background-color: #EDE9FE;
+    color: #6D28D9;
+}

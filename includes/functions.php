@@ -191,6 +191,9 @@ function statusBadgeClass(string $status): string
         case 'Belum Ditindak Lanjuti':
             return 'badge-status-belum';
 
+        case 'Perlu Revisi':
+            return 'badge-status-revisi';
+
         case 'Dalam Proses':
             return 'badge-status-proses';
 
