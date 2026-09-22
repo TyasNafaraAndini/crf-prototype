@@ -136,6 +136,8 @@ if ($id <= 0 || $status === null) {
 $stmt = $pdo->prepare(
     'SELECT
         status,
+        level,
+        tanggapan_tindak_lanjut,
         approval_at,
         solved_at,
         cancelled_at
@@ -279,36 +281,16 @@ try {
         'id' => $id,
     ]);
 
-   /*
- * ---------------------------------------------------------------
- * Catat perubahan status ke timeline
- * ---------------------------------------------------------------
- */
-if ($currentStatus !== $status) {
-
+     /*
+     * ---------------------------------------------------------------
+     * Catat perubahan ke timeline: status, Level Complain, dan
+     * Tanggapan / Tindak Lanjut masing-masing dicatat sebagai entri
+     * terpisah, supaya riwayatnya lengkap.
+     * ---------------------------------------------------------------
+     */
     $actor = !empty($admin['nama'])
         ? $admin['nama']
         : $admin['userid'];
-
-    $activity = $status;
-    $description = null;
-
-    if ($status === 'Dalam Proses') {
-
-        $description = 'Pengajuan sedang diproses oleh admin.';
-
-    } elseif ($status === 'Perlu Revisi') {
-
-        $description = $tanggapan;
-
-    } elseif ($status === 'Solve') {
-
-        $description = 'Pengajuan telah selesai diproses.';
-
-    } elseif ($status === 'Cancel') {
-
-        $description = 'Pengajuan dibatalkan.';
-    }
 
     $logStmt = $pdo->prepare("
         INSERT INTO crf_activity_logs (
@@ -324,13 +306,55 @@ if ($currentStatus !== $status) {
         )
     ");
 
-    $logStmt->execute([
-        'change_request_id' => $id,
-        'activity'          => $activity,
-        'description'       => $description,
-        'actor'             => $actor,
-    ]);
-}
+    if ($currentStatus !== $status) {
+
+        $description = null;
+
+        if ($status === 'Dalam Proses') {
+            $description = 'Pengajuan sedang diproses oleh admin.';
+        } elseif ($status === 'Perlu Revisi') {
+            $description = $tanggapan;
+        } elseif ($status === 'Solve') {
+            $description = 'Pengajuan telah selesai diproses.';
+        } elseif ($status === 'Cancel') {
+            $description = 'Pengajuan dibatalkan.';
+        }
+
+        $logStmt->execute([
+            'change_request_id' => $id,
+            'activity'          => $status,
+            'description'       => $description,
+            'actor'             => $actor,
+        ]);
+    }
+
+    $oldLevel     = $current['level'] ?? null;
+    $oldTanggapan = $current['tanggapan_tindak_lanjut'] ?? null;
+
+    if ($oldLevel !== $level) {
+        $logStmt->execute([
+            'change_request_id' => $id,
+            'activity'          => 'Ubah Level Complain',
+            'description'       => 'Level Complain diubah menjadi "'
+                . ($level ?? 'Belum ditentukan') . '".',
+            'actor'             => $actor,
+        ]);
+    }
+
+    // Kalau status ikut berubah ke Perlu Revisi/Cancel, tanggapannya
+    // sudah tercatat di log status di atas, jadi tidak perlu dobel.
+    if (
+        $currentStatus === $status
+        && $oldTanggapan !== $tanggapan
+        && $tanggapan !== ''
+    ) {
+        $logStmt->execute([
+            'change_request_id' => $id,
+            'activity'          => 'Ubah Tanggapan',
+            'description'       => $tanggapan,
+            'actor'             => $actor,
+        ]);
+    }
 
     $pdo->commit();
 

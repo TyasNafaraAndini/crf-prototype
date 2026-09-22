@@ -101,6 +101,29 @@ $stmt->execute([
     'user_id' => $user['id']
 ]);
 
+$logStmt = $pdo->prepare("
+    INSERT INTO crf_activity_logs (
+        change_request_id,
+        activity,
+        description,
+        actor
+    ) VALUES (
+        :change_request_id,
+        :activity,
+        :description,
+        :actor
+    )
+");
+
+$actor = !empty($user['nama']) ? $user['nama'] : $user['userid'];
+
+$logStmt->execute([
+    'change_request_id' => $id,
+    'activity'          => 'Isi PIR & Implementasi',
+    'description'       => 'User mengisi/memperbarui Post Implementation Review dan Implementasi.',
+    'actor'             => $actor,
+]);
+
 $_SESSION['flash'] = [
     'type' => 'success',
     'message' => 'Post Implementation Review dan Implementasi berhasil disimpan.'
