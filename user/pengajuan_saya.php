@@ -428,9 +428,13 @@ require_once __DIR__ . '/../includes/header.php';
                                     </td>
 
 
-                                    <!-- NOMOR REGISTER -->
+                                                                        <!-- NOMOR REGISTER -->
                                     <td style="white-space: nowrap;">
-                                        <?= h($row['request_number']) ?>
+                                        <?php if (!empty($row['request_number'])): ?>
+                                            <?= h($row['request_number']) ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
                                     </td>
 
 

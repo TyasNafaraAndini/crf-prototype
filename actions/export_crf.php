@@ -613,7 +613,7 @@ $dompdf->render();
 $fileName = 'CRF-' . preg_replace(
     '/[^A-Za-z0-9._-]/',
     '-',
-    $crf['request_number']
+    $crf['request_number'] ?? ('DRAFT-' . $crf['id'])
 ) . '.pdf';
 
 $dompdf->stream($fileName, [

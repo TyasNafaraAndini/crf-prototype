@@ -55,7 +55,7 @@ CREATE TABLE users (
 -- ---------------------------------------------------------------------
 CREATE TABLE change_requests (
     id                          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    request_number              VARCHAR(50)     NOT NULL UNIQUE,
+    request_number              VARCHAR(50)     NULL UNIQUE,
     user_id                     INT UNSIGNED    NOT NULL,
 
     full_name                   VARCHAR(150)    NOT NULL,
