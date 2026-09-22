@@ -248,16 +248,13 @@ function levelBadgeClass(?string $level): string
 /**
  * Konfigurasi upload file (lihat brief butir 12).
  */
-const CRF_ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'];
+const CRF_ALLOWED_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
 const CRF_ALLOWED_MIME_TYPES = [
     'application/pdf',
     'image/jpeg',
     'image/png',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
+
 const CRF_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB per file
 
 /**
