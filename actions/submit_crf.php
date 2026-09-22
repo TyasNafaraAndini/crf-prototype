@@ -242,14 +242,18 @@ try {
             $isResubmission = true;
         }
 
-        /*
-         * Pertahankan Nomor Register yang sudah dimiliki Draft.
+                /*
+         * Nomor Register dibuat saat Submit. Draft lama yang sudah
+         * punya nomor, dan CRF "Perlu Revisi", tetap memakai nomornya.
          */
-        $requestNumber = $draft['request_number'];
+        $requestNumber = !empty($draft['request_number'])
+            ? $draft['request_number']
+            : generateRequestNumber($pdo, $today);
 
         $stmt = $pdo->prepare("
             UPDATE change_requests
             SET
+                request_number = :request_number,
                 full_name = :full_name,
                 phone = :phone,
                 email = :email,
@@ -274,6 +278,7 @@ try {
         ");
 
         $stmt->execute([
+            'request_number'         => $requestNumber,
             'full_name'              => $fullName,
             'phone'                  => $phone,
             'email'                  => $email,

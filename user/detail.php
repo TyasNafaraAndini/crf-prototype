@@ -109,7 +109,11 @@ $timeline = $timelineStmt->fetchAll();
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
-$pageTitle = 'Detail CRF - ' . $crf['request_number'];
+$requestNumberDisplay = !empty($crf['request_number'])
+    ? $crf['request_number']
+    : 'Belum ada (draft)';
+
+$pageTitle = 'Detail CRF - ' . $requestNumberDisplay;
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -125,7 +129,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <p>
                     Nomor Register:
-                    <strong><?= h($crf['request_number']) ?></strong>
+                    <strong><?= h($requestNumberDisplay) ?></strong>
                 </p>
             </div>
 
@@ -345,12 +349,12 @@ require_once __DIR__ . '/../includes/header.php';
 
                     <div class="col-md-3">
 
-                        <div class="crf-detail-label">
+                                                <div class="crf-detail-label">
                             NOMOR REGISTER
                         </div>
 
                         <div class="crf-detail-value">
-                            <?= h($crf['request_number']) ?>
+                            <?= h($requestNumberDisplay) ?>
                         </div>
 
                     </div>

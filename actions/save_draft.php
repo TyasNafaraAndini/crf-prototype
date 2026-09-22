@@ -222,16 +222,11 @@ try {
      */
     } else {
 
-        $today = new DateTime();
-
-        /*
-         * Nomor register dibuat sekali saat draft pertama
-         * kali disimpan dan akan tetap digunakan.
+                /*
+         * Draft belum memiliki Nomor Register.
+         * Nomor dibuat saat CRF di-Submit.
          */
-        $requestNumber = generateRequestNumber(
-            $pdo,
-            $today
-        );
+        $requestNumber = null;
 
 
         $stmt = $pdo->prepare(
@@ -361,14 +356,12 @@ try {
     /*
      * Pesan berhasil.
      */
-    if ($uploadErrors) {
+        if ($uploadErrors) {
 
         $_SESSION['flash'] = [
             'type' => 'warning',
             'message' =>
-                'Draft berhasil disimpan dengan Nomor Register '
-                . $requestNumber
-                . ', tetapi ada file yang gagal diupload: '
+                'Draft berhasil disimpan, tetapi ada file yang gagal diupload: '
                 . implode(' ', $uploadErrors)
         ];
 
@@ -377,9 +370,7 @@ try {
         $_SESSION['flash'] = [
             'type' => 'success',
             'message' =>
-                'Draft berhasil disimpan dengan Nomor Register '
-                . $requestNumber
-                . '.'
+                'Draft berhasil disimpan. Nomor Register akan dibuat setelah CRF disubmit.'
         ];
     }
 

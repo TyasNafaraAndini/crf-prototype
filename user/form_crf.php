@@ -56,7 +56,7 @@ $today = new DateTime();
 $tanggalDisplay   = formatTanggalIndonesia($today);
 $previewRequestNo = !empty($draftData['request_number'])
     ? $draftData['request_number']
-    : generateRequestNumber($pdo, $today);
+    : 'Dibuat otomatis setelah CRF disubmit';
 
 $toDepartment = 'Departemen Operasional';
 $toDivision   = 'Divisi Otomasi';
@@ -166,7 +166,7 @@ require_once __DIR__ . '/../includes/header.php';
               <label class="crf-field-label">Nomor Register<span class="text-danger">*</span>
               </label>
               <input type="text" class="form-control" value="<?= h($previewRequestNo) ?>" readonly>
-              <div class="crf-readonly-note"><i class="bi bi-lock-fill"></i>Nomor akhir dibuat sistem saat data disimpan</div>
+              <div class="crf-readonly-note"><i class="bi bi-lock-fill"></i>Nomor dibuat sistem setelah CRF disubmit</div>
             </div>
             <div class="col-md-6">
               <label class="crf-field-label">Kepada<span class="text-danger">*</span>
