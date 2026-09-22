@@ -59,14 +59,16 @@ $appBasePath = rtrim($appBasePath, '/');
     <!-- BRAND -->
     <a
         class="crf-sidebar-brand"
-        href="<?= h($appBasePath) ?>/user/form_crf.php"
+        href="<?= h($appBasePath) ?><?= $isAdminUser
+            ? '/admin/dashboard.php'
+            : '/user/form_crf.php' ?>"
     >
         <span class="crf-sidebar-mark">
-            <i class="bi bi-file-earmark-text"></i>
+            <i class="bi bi-house-door-fill"></i>
         </span>
 
-        <span>SIAP PPU</span>
-    </a>
+        <span class="ppu-brand-text">CRF</span>
+    </a> 
 
 
     <div class="crf-sidebar-section">
@@ -79,36 +81,49 @@ $appBasePath = rtrim($appBasePath, '/');
         aria-label="Navigasi utama"
     >
 
-            <?php if ($isAdminUser): ?>
-      <!-- DASHBOARD -->
-      <a
-        class="<?= $isDashboard ? 'active' : '' ?>"
-        href="<?= h($appBasePath) ?>/admin/dashboard.php"
-      >
-        <i class="bi bi-grid-1x2-fill"></i>
-        <span>Dashboard</span>
-      </a>
-      <?php endif; ?>
+        <?php if ($isAdminUser): ?>
+
+            <!-- DASHBOARD ADMIN -->
+            <a
+                class="<?= $isDashboard ? 'active' : '' ?>"
+                href="<?= h($appBasePath) ?>/admin/dashboard.php"
+            >
+                <i class="bi bi-grid-1x2-fill"></i>
+                <span>Dashboard</span>
+            </a>
 
 
-      <!-- FORM CRF -->
-      <a
-        class="<?= $isForm ? 'active' : '' ?>"
-        href="<?= h($appBasePath) ?>/user/form_crf.php"
-      >
-        <i class="bi bi-file-earmark-plus"></i>
-        <span>Form CRF</span>
-      </a>
+            <!-- FORM CRF -->
+            <a
+                class="<?= $isForm ? 'active' : '' ?>"
+                href="<?= h($appBasePath) ?>/user/form_crf.php"
+            >
+                <i class="bi bi-file-earmark-plus"></i>
+                <span>Form CRF</span>
+            </a>
+
+        <?php else: ?>
+
+            <!-- FORM CRF USER -->
+            <a
+                class="<?= $isForm ? 'active' : '' ?>"
+                href="<?= h($appBasePath) ?>/user/form_crf.php"
+            >
+                <i class="bi bi-file-earmark-plus"></i>
+                <span>Form CRF</span>
+            </a>
 
 
-      <!-- PENGAJUAN SAYA -->
-      <a
-        class="<?= $isPengajuanSaya ? 'active' : '' ?>"
-        href="<?= h($appBasePath) ?>/user/pengajuan_saya.php"
-      >
-        <i class="bi bi-file-earmark-check"></i>
-        <span>Pengajuan Saya</span>
-      </a> 
+            <!-- PENGAJUAN SAYA -->
+            <a
+                class="<?= $isPengajuanSaya ? 'active' : '' ?>"
+                href="<?= h($appBasePath) ?>/user/pengajuan_saya.php"
+            >
+                <i class="bi bi-file-earmark-check"></i>
+                <span>Pengajuan Saya</span>
+            </a>
+
+        <?php endif; ?>
 
     </nav>
 
@@ -116,7 +131,7 @@ $appBasePath = rtrim($appBasePath, '/');
     <!-- FOOTER SIDEBAR -->
     <div class="crf-sidebar-footer">
 
-        <a href="<?= h($appBasePath) ?>/">
+        <a href="<?= h($appBasePath) ?>/actions/logout.php">
             <i class="bi bi-box-arrow-left"></i>
             Keluar
         </a>
@@ -130,41 +145,25 @@ $appBasePath = rtrim($appBasePath, '/');
 
     <header class="crf-topbar">
 
-      <div class="crf-breadcrumb">
+    <!-- KANAN -->
+    <div class="crf-user">
 
-        <strong>SIAP PPU</strong>
+      <strong>
+          <?= h($currentUser['nama'] ?? '-') ?>
+      </strong>
 
-        <span>Menu Saya</span>
+      <span class="crf-avatar">
+          <?= h(
+              strtoupper(
+                  substr(
+                      $currentUser['nama'] ?? 'U',
+                      0,
+                      2
+                  )
+              )
+          ) ?>
+      </span>
 
-        <i class="bi bi-chevron-right"></i>
+    </div>
 
-        <span><?= h($pageTitle) ?></span>
-
-      </div>
-
-
-      <div class="crf-user">
-
-        <strong>
-            <?= h($currentUser['nama'] ?? '-') ?>
-        </strong>
-
-        <small>
-            <?= h($currentUser['dept'] ?? '-') ?>
-        </small>
-
-        <span class="crf-avatar">
-            <?= h(
-                strtoupper(
-                    substr(
-                        $currentUser['nama'] ?? 'U',
-                        0,
-                        2
-                    )
-                )
-            ) ?>
-        </span>
-
-      </div>
-
-    </header>
+  </header>

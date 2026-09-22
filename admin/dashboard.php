@@ -45,13 +45,58 @@ if (in_array($categoryFilter, $allowedCategories, true)) {
     $params['category'] = $categoryFilter;
 }
 
+/* =========================================================
+ * Pagination
+ * ========================================================= */
+
+$perPage = 10;
+
+$page = max(
+    1,
+    (int) ($_GET['page'] ?? 1)
+);
+
+
+/* =========================================================
+ * Hitung total data sesuai pencarian/filter
+ * ========================================================= */
+
+$countSql = "
+    SELECT COUNT(*)
+    FROM change_requests cr
+";
+
+if ($where) {
+    $countSql .= ' WHERE ' . implode(' AND ', $where);
+}
+
+$countStmt = $pdo->prepare($countSql);
+$countStmt->execute($params);
+
+$totalRows = (int) $countStmt->fetchColumn();
+
+$totalPages = max(
+    1,
+    (int) ceil($totalRows / $perPage)
+);
+
+
+if ($page > $totalPages) {
+    $page = $totalPages;
+}
+
+$offset = ($page - 1) * $perPage;
+
 $sql = 'SELECT cr.*
         FROM change_requests cr';
 
 if ($where) {
     $sql .= ' WHERE ' . implode(' AND ', $where);
 }
-$sql .= ' ORDER BY cr.created_at DESC';
+$sql .= "
+    ORDER BY cr.created_at DESC
+    LIMIT {$perPage} OFFSET {$offset}
+";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -168,7 +213,7 @@ require_once __DIR__ . '/../includes/header.php';
               <th>Departemen</th>
               <th>Divisi</th>
               <th>Kategori</th>
-              <th>Level Complain</th>
+              <th>Level Urgensi</th>
               <th>Status</th>
               <th>Aksi</th>
             </tr>
@@ -181,7 +226,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php else: ?>
               <?php foreach ($requests as $i => $row): ?>
                 <tr>
-                  <td><?= $i + 1 ?></td>
+                  <td><?= $offset + $i + 1 ?></td>
                   <td><strong><?= h($row['request_number']) ?></strong></td>
                   <td>
                     <?php if (!empty($row['submission_date'])): ?>
@@ -227,6 +272,75 @@ require_once __DIR__ . '/../includes/header.php';
           </tbody>
         </table>
       </div>
+
+      <?php if ($totalPages > 1): ?>
+
+          <nav aria-label="Pagination dashboard" class="mt-3">
+
+              <ul class="pagination justify-content-end mb-0">
+
+                  <?php
+                  $prevParams = $_GET;
+                  $prevParams['page'] = max(1, $page - 1);
+
+                  $nextParams = $_GET;
+                  $nextParams['page'] = min($totalPages, $page + 1);
+                  ?>
+
+                  <!-- Previous -->
+                  <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+
+                      <a
+                          class="page-link"
+                          href="?<?= h(http_build_query($prevParams)) ?>"
+                          aria-label="Previous"
+                      >
+                          <i class="bi bi-chevron-left"></i>
+                      </a>
+
+                  </li>
+
+
+                  <!-- Nomor halaman -->
+                  <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+
+                      <?php
+                      $pageParams = $_GET;
+                      $pageParams['page'] = $p;
+                      ?>
+
+                      <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+
+                          <a
+                              class="page-link"
+                              href="?<?= h(http_build_query($pageParams)) ?>"
+                          >
+                              <?= $p ?>
+                          </a>
+
+                      </li>
+
+                  <?php endfor; ?>
+
+
+                  <!-- Next -->
+                  <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+
+                      <a
+                          class="page-link"
+                          href="?<?= h(http_build_query($nextParams)) ?>"
+                          aria-label="Next"
+                      >
+                          <i class="bi bi-chevron-right"></i>
+                      </a>
+
+                  </li>
+
+              </ul>
+
+          </nav>
+
+      <?php endif; ?>
 
     </div>
 

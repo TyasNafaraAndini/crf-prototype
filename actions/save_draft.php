@@ -23,6 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+verifyCsrf();
+
+
 $pdo  = getConnection();
 $user = getCurrentUser();
 
@@ -171,7 +174,7 @@ try {
                 full_name = :full_name,
                 phone = :phone,
                 email = :email,
-                submission_date = NULL,
+                -- submission_date = NULL,
                 to_department = :to_department,
                 to_division = :to_division,
                 from_department = :from_department,
@@ -400,8 +403,7 @@ try {
 
     $_SESSION['flash'] = [
         'type' => 'danger',
-        'message' =>
-            'ERROR: ' . $e->getMessage()
+        'message' => 'Terjadi kesalahan saat menyimpan draft. Silakan coba lagi.'
     ];
 
     if ($id > 0) {

@@ -27,83 +27,84 @@ use Aws\Exception\AwsException;
  *   - 4 digit urut, diambil dari next AUTO_INCREMENT tabel change_requests
  *   - bulan & tahun pengajuan (2 digit)
  */
+/**
+ * Membuat Nomor Register BARU (menaikkan penghitung).
+ *
+ * Format: PPU-02.4.NNNN.MM.YY
+ * Dipanggil hanya saat data benar-benar disimpan (save_draft.php
+ * dan submit_crf.php). Untuk sekadar menampilkan pratinjau di form,
+ * gunakan previewRequestNumber().
+ *
+ * Satu query UPDATE bersifat atomik: baris penghitung dikunci
+ * sampai transaksi selesai, sehingga dua pengajuan bersamaan
+ * tidak akan mendapat nomor yang sama.
+ */
 function generateRequestNumber(PDO $pdo, DateTime $date): string
 {
-    /*
-     * Ambil nomor urut terbesar yang benar-benar sudah tersimpan
-     * di tabel change_requests.
-     *
-     * Format:
-     * PPU-02.4.0016.09.26
-     *
-     * Bagian nomor urut adalah segmen ke-3.
-     */
-    $stmt = $pdo->query("
-        SELECT COALESCE(
-            MAX(
-                CAST(
-                    SUBSTRING_INDEX(
-                        SUBSTRING_INDEX(request_number, '.', 3),
-                        '.',
-                        -1
-                    ) AS UNSIGNED
-                )
-            ),
-            0
-        ) AS max_sequence
-        FROM change_requests
-    ");
+    $stmt = $pdo->prepare(
+        'UPDATE crf_sequence
+         SET last_number = LAST_INSERT_ID(
+             GREATEST(
+                 last_number,
+                 COALESCE((
+                     SELECT MAX(
+                         CAST(
+                             SUBSTRING_INDEX(
+                                 SUBSTRING_INDEX(request_number, ".", 3),
+                                 ".",
+                                 -1
+                             ) AS UNSIGNED
+                         )
+                     )
+                     FROM change_requests
+                     WHERE request_number LIKE "PPU-02.4.%"
+                 ), 0)
+             ) + 1
+         )
+         WHERE id = 1'
+    );
 
-    $maxSequence = (int) $stmt->fetchColumn();
+    $stmt->execute();
 
-    $nextSequence = $maxSequence + 1;
+    if ($stmt->rowCount() === 0) {
+        throw new RuntimeException(
+            'Penghitung nomor register belum tersedia (tabel crf_sequence).'
+        );
+    }
 
-    if ($nextSequence > 9999) {
+    $sequence = (int) $pdo->query('SELECT LAST_INSERT_ID()')->fetchColumn();
+
+    if ($sequence > 9999) {
         throw new RuntimeException(
             'Nomor register sudah mencapai batas maksimum 9999.'
         );
     }
 
-    $month = $date->format('m');
-    $year  = $date->format('y');
+    return sprintf(
+        'PPU-02.4.%04d.%s.%s',
+        $sequence,
+        $date->format('m'),
+        $date->format('y')
+    );
+}
 
-    /*
-     * Pastikan nomor benar-benar unik.
-     */
-    do {
-        $sequence = str_pad(
-            (string) $nextSequence,
-            4,
-            '0',
-            STR_PAD_LEFT
-        );
+/**
+ * Pratinjau Nomor Register berikutnya, TANPA menaikkan penghitung.
+ * Hanya untuk ditampilkan di form; nomor akhir tetap dibuat saat
+ * data disimpan.
+ */
+function previewRequestNumber(PDO $pdo, DateTime $date): string
+{
+    $last = (int) $pdo
+        ->query('SELECT last_number FROM crf_sequence WHERE id = 1')
+        ->fetchColumn();
 
-        $requestNumber = sprintf(
-            'PPU-02.4.%s.%s.%s',
-            $sequence,
-            $month,
-            $year
-        );
-
-        $checkStmt = $pdo->prepare("
-            SELECT COUNT(*)
-            FROM change_requests
-            WHERE request_number = :request_number
-        ");
-
-        $checkStmt->execute([
-            'request_number' => $requestNumber
-        ]);
-
-        $exists = (int) $checkStmt->fetchColumn() > 0;
-
-        if ($exists) {
-            $nextSequence++;
-        }
-
-    } while ($exists);
-
-    return $requestNumber;
+    return sprintf(
+        'PPU-02.4.%04d.%s.%s',
+        $last + 1,
+        $date->format('m'),
+        $date->format('y')
+    );
 }
 
 /**
@@ -170,11 +171,45 @@ function statusLabel(string $status): string
     }
 }
 
+/**
+ * Aturan perpindahan status yang boleh dilakukan admin.
+ * Kunci = status sekarang, nilai = status tujuan yang diizinkan.
+ * Mau mengubah aturan? Cukup edit daftar di bawah ini.
+ */
+function statusTransitions(): array
+{
+    return [
+        'Belum Ditindak Lanjuti' => ['Perlu Revisi', 'Dalam Proses', 'Cancel'],
+        'Perlu Revisi'           => ['Cancel'],
+        'Dalam Proses'           => ['Perlu Revisi', 'Solve', 'Cancel'],
+        'Solve'                  => [],
+        'Cancel'                 => [],
+    ];
+}
+
+/**
+ * Apakah perpindahan status dari $from ke $to diperbolehkan?
+ * Status yang sama selalu boleh (hanya mengubah Level / Tanggapan).
+ */
+function canChangeStatus(string $from, string $to): bool
+{
+    if ($from === $to) {
+        return true;
+    }
+
+    $map = statusTransitions();
+
+    return in_array($to, $map[$from] ?? [], true);
+}
+
 function statusBadgeClass(string $status): string
 {
     switch ($status) {
         case 'Belum Ditindak Lanjuti':
             return 'badge-status-belum';
+
+        case 'Perlu Revisi':
+            return 'badge-status-revisi';
 
         case 'Dalam Proses':
             return 'badge-status-proses';

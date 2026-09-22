@@ -3,7 +3,7 @@
  * admin/edit.php
  * ---------------------------------------------------------------
  * Halaman bagi admin untuk mengelola CRF:
- *   - Menentukan Level Complain
+ *   - Menentukan Level Urgensi
  *   - Mengubah Status
  *   - Mengisi Tanggapan / Tindak Lanjut
  *
@@ -177,8 +177,10 @@ require_once __DIR__ . '/../includes/header.php';
         value="<?= (int) $crf['id'] ?>"
       >
 
+            <?= csrfField() ?>
 
-      <!-- LEVEL COMPLAIN -->
+
+      <!-- LEVEL URGENT -->
       <div class="crf-section">
 
         <div class="crf-section-header">
@@ -187,15 +189,15 @@ require_once __DIR__ . '/../includes/header.php';
             <i class="bi bi-flag"></i>
           </span>
 
-          <h2>Level Complain</h2>
+          <h2>Level Urgensi</h2>
 
         </div>
 
         <div class="crf-section-body">
 
-          <p class="crf-hint">
-            Catatan: Level Complain di prototype ini berbeda dengan Level Urgensi pada dokumen CRF perusahaan.
-          </p>
+          <!-- <p class="crf-hint">
+            Catatan: Level Urgensi di prototype ini berbeda dengan Level Urgensi pada dokumen CRF perusahaan.
+          </p> -->
 
           <select
             name="level"
@@ -253,48 +255,27 @@ require_once __DIR__ . '/../includes/header.php';
 
         <div class="crf-section-body">
 
+                    <?php
+          $statusOptions = array_merge(
+              [$crf['status']],
+              statusTransitions()[$crf['status']] ?? []
+          );
+          ?>
+
           <select
             name="status"
             id="status"
             class="form-select"
             style="max-width: 260px;"
           >
-
-            <option
-              value="Belum Ditindak Lanjuti"
-              <?= $crf['status'] === 'Belum Ditindak Lanjuti' ? 'selected' : '' ?>
-            >
-              Belum Ditindak Lanjuti
-            </option>
-
-            <option
-                value="Perlu Revisi"
-                <?= $crf['status'] === 'Perlu Revisi' ? 'selected' : '' ?>
-            >
-                Perlu Revisi
-            </option>
-
-            <option
-              value="Dalam Proses"
-              <?= $crf['status'] === 'Dalam Proses' ? 'selected' : '' ?>
-            >
-              Dalam Proses
-            </option>
-
-            <option
-              value="Solve"
-              <?= $crf['status'] === 'Solve' ? 'selected' : '' ?>
-            >
-              Solve (Selesai)
-            </option>
-
-            <option
-              value="Cancel"
-              <?= $crf['status'] === 'Cancel' ? 'selected' : '' ?>
-            >
-              Cancel (Dibatalkan)
-            </option>
-
+            <?php foreach ($statusOptions as $option): ?>
+              <option
+                value="<?= h($option) ?>"
+                <?= $crf['status'] === $option ? 'selected' : '' ?>
+              >
+                <?= h(statusLabel($option)) ?>
+              </option>
+            <?php endforeach; ?>
           </select>
 
 
