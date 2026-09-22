@@ -261,10 +261,10 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="crf-section-body">
           <p class="crf-hint">Silakan sampaikan bukti berupa screenshot, printout, atau dokumen pendukung lain (opsional).</p>
-          <input type="file" class="form-control" id="attachments" name="attachments[]" multiple
-                 accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx">
+            <input type="file" class="form-control" id="attachments" name="attachments[]" multiple
+                 accept=".pdf,.jpg,.jpeg,.png">
           <div class="crf-readonly-note mt-2">
-            Format yang didukung: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX. Maks. 5 MB per file.
+            Format yang didukung: PDF, JPG, JPEG, PNG. Maks. 5 MB per file.
           </div>
           <div id="file-list-preview" class="mt-2"></div>
         </div>
