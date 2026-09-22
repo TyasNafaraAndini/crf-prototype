@@ -3,7 +3,7 @@
  * actions/update_crf.php
  * ---------------------------------------------------------------
  * Menangani penyimpanan dari admin/edit.php:
- *   - Level Complain (Tinggi / Normal / Rendah)
+ *   - Level Urgensi (Tinggi / Normal / Rendah)
  *   - Status
  *     (Belum Ditindak Lanjuti / Dalam Proses / Solve / Cancel)
  *   - Tanggapan / Tindak Lanjut
@@ -32,6 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../admin/dashboard.php');
     exit;
 }
+
+verifyCsrf();
 
 $pdo = getConnection();
 $admin = getCurrentUser();
@@ -97,6 +99,24 @@ $status = in_array(
         exit;
     }
 
+    if (
+        $status === 'Cancel'
+        && $tanggapan === ''
+    ) {
+
+        $_SESSION['flash'] = [
+            'type' => 'danger',
+            'message' => 'Tanggapan / Tindak Lanjut wajib diisi jika status Dibatalkan.'
+        ];
+
+        header(
+            'Location: ../admin/edit.php?id='
+            . $id
+        );
+
+        exit;
+    }
+
 
 if ($id <= 0 || $status === null) {
 
@@ -144,6 +164,24 @@ if (!$current) {
 
 $currentStatus = $current['status'];
 
+/*
+ * Tolak perpindahan status yang tidak diperbolehkan.
+ */
+if (!canChangeStatus($currentStatus, $status)) {
+
+    $_SESSION['flash'] = [
+        'type' => 'danger',
+        'message' =>
+            'Perubahan status dari "'
+            . statusLabel($currentStatus)
+            . '" ke "'
+            . statusLabel($status)
+            . '" tidak diperbolehkan.'
+    ];
+
+    header('Location: ../admin/edit.php?id=' . $id);
+    exit;
+}
 
 /*
  * Pertahankan timestamp yang sudah ada.

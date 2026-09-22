@@ -18,6 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
+verifyCsrf();
+
+
 $user = getCurrentUser();
 $pdo = getConnection();
 
