@@ -466,37 +466,9 @@ require_once __DIR__ . '/../includes/header.php';
                                     <!-- STATUS -->
                                     <td style="white-space: nowrap;">
 
-                                        <?php
-                                        $status = $row['status'];
-
-                                       if ($status === 'Belum Ditindak Lanjuti') {
-                                            $badge = 'secondary';
-                                        } elseif ($status === 'Perlu Revisi') {
-                                            $badge = 'revisi';
-                                        } elseif ($status === 'Dalam Proses') {
-                                            $badge = 'warning';
-                                        } elseif ($status === 'Solve') {
-                                            $badge = 'success';
-                                        } elseif ($status === 'Cancel') {
-                                            $badge = 'danger';
-                                        } else {
-                                            $badge = 'secondary';
-                                        }
-                                        ?>
-
-                                        <?php if ($status === 'Perlu Revisi'): ?>
-
-                                            <span class="badge crf-badge badge-status-revisi">
-                                                <?= h($status) ?>
-                                            </span>
-
-                                        <?php else: ?>
-
-                                            <span class="badge bg-<?= $badge ?>">
-                                                <?= h($status) ?>
-                                            </span>
-
-                                        <?php endif; ?>
+                                        <span class="crf-badge <?= statusBadgeClass($row['status']) ?>">
+                                            <?= h(statusLabel($row['status'])) ?>
+                                        </span>
 
                                     </td>
 

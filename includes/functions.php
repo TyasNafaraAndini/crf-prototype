@@ -205,6 +205,9 @@ function canChangeStatus(string $from, string $to): bool
 function statusBadgeClass(string $status): string
 {
     switch ($status) {
+        case 'Draft':
+            return 'badge-status-draft';
+
         case 'Belum Ditindak Lanjuti':
             return 'badge-status-belum';
 
