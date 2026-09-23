@@ -202,7 +202,7 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
       </form>
 
-      <div class="table-responsive">
+      <div class="table-responsive crf-table-responsive-cards">
         <table class="table crf-table align-middle">
           <thead>
             <tr>
@@ -226,30 +226,30 @@ require_once __DIR__ . '/../includes/header.php';
             <?php else: ?>
               <?php foreach ($requests as $i => $row): ?>
                 <tr>
-                  <td><?= $offset + $i + 1 ?></td>
-                  <td><strong><?= h($row['request_number']) ?></strong></td>
-                  <td>
+                  <td data-label="No"><?= $offset + $i + 1 ?></td>
+                  <td data-label="Nomor Register"><strong><?= h($row['request_number']) ?></strong></td>
+                  <td data-label="Tanggal">
                     <?php if (!empty($row['submission_date'])): ?>
                         <?= h(date('d-m-Y', strtotime($row['submission_date']))) ?>
                     <?php else: ?>
                         <span class="text-muted">-</span>
                     <?php endif; ?>
                 </td>
-                  <td><?= h($row['full_name']) ?></td>
-                  <td><?= h($row['from_department']) ?></td>
-                  <td><?= h($row['from_division'] ?? '-') ?></td>
-                  <td><?= h($row['change_category'] ?? '-') ?></td>
-                  <td>
+                  <td data-label="Pengaju"><?= h($row['full_name']) ?></td>
+                  <td data-label="Departemen"><?= h($row['from_department']) ?></td>
+                  <td data-label="Divisi"><?= h($row['from_division'] ?? '-') ?></td>
+                  <td data-label="Kategori"><?= h($row['change_category'] ?? '-') ?></td>
+                  <td data-label="Level Urgensi">
                     <span class="crf-badge <?= levelBadgeClass($row['level']) ?>">
                       <?= h($row['level'] ?? 'Belum ditentukan') ?>
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span class="crf-badge <?= statusBadgeClass($row['status']) ?>">
                       <?= h(statusLabel($row['status'])) ?>
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Aksi">
                     <div class="d-flex gap-1">
                       <a
                         href="detail.php?id=<?= (int) $row['id'] ?>"

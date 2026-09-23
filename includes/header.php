@@ -54,6 +54,8 @@ $appBasePath = rtrim($appBasePath, '/');
 
 <div class="crf-app-shell">
 
+  <div class="crf-sidebar-overlay"></div>
+
   <aside class="crf-sidebar">
 
     <!-- BRAND -->
@@ -144,6 +146,10 @@ $appBasePath = rtrim($appBasePath, '/');
   <div class="crf-content-shell">
 
     <header class="crf-topbar">
+            <button type="button" class="crf-sidebar-toggle" aria-label="Buka menu">
+        <i class="bi bi-list"></i>
+    </button>
+
 
     <!-- KANAN -->
     <div class="crf-user">

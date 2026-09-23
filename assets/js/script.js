@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
       categoryDetailWrap.classList.remove('d-none');
       categoryDetailLabel.textContent = 'Detail Kategori - ' + val;
       categoryDetailInput.placeholder = categoryHints[val];
-      // Sesuai brief butir 14: hanya kategori "Lainnya" yang wajib diisi.
       categoryDetailInput.required = (val === 'Lainnya');
     } else {
       categoryDetailWrap.classList.add('d-none');
@@ -40,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (categorySelect) {
     categorySelect.addEventListener('change', updateCategoryDetail);
-    updateCategoryDetail(); // set kondisi awal (misalnya saat edit draft)
+    updateCategoryDetail();
   }
 
   /* -----------------------------------------------------------------
@@ -126,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
     statusSelect.dataset.previous = statusSelect.value;
   }
 
-    /* -----------------------------------------------------------------
+  /* -----------------------------------------------------------------
    * 6. Simpan Draft
    * ----------------------------------------------------------------- */
   var btnSaveDraft = document.getElementById('btnSaveDraft');
@@ -134,14 +133,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (btnSaveDraft && crfForm) {
     btnSaveDraft.addEventListener('click', function () {
-
-      // Arahkan form ke proses save draft
       crfForm.action = '../actions/save_draft.php';
-
-      // Kirim form tanpa menjalankan validasi browser / JS
       crfForm.submit();
     });
   }
 
-});
+  /* -----------------------------------------------------------------
+   * 7. Toggle sidebar mobile (hamburger + overlay)
+   * ----------------------------------------------------------------- */
+  var appShell = document.querySelector('.crf-app-shell');
+  var sidebarToggle = document.querySelector('.crf-sidebar-toggle');
+  var sidebarOverlay = document.querySelector('.crf-sidebar-overlay');
 
+  function closeSidebar() {
+    if (appShell) { appShell.classList.remove('crf-sidebar-open'); }
+  }
+
+  if (sidebarToggle && appShell) {
+    sidebarToggle.addEventListener('click', function () {
+      appShell.classList.toggle('crf-sidebar-open');
+    });
+  }
+
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeSidebar);
+  }
+
+  // Tutup sidebar otomatis kalau salah satu link menu diklik (mobile)
+  document.querySelectorAll('.crf-sidebar-nav a, .crf-sidebar-footer a').forEach(function (link) {
+    link.addEventListener('click', closeSidebar);
+  });
+
+});

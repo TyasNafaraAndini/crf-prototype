@@ -1,6 +1,7 @@
 /* =====================================================================
    CRF Prototype - Custom Styles
    Palet: putih, biru korporat, abu-abu (sesuai brief butir 29)
+   Versi: responsive (mobile-first tweaks ditambahkan di bagian bawah)
    ===================================================================== */
 
 :root {
@@ -19,7 +20,13 @@
 
   --crf-radius: 10px;
   --crf-font: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --crf-sidebar-width: 207px;
+  --crf-sidebar-width-collapsed: 58px;
+  --crf-topbar-height: 58px;
 }
+
+* { box-sizing: border-box; }
 
 body {
   font-family: var(--crf-font);
@@ -28,12 +35,14 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden; /* cegah scroll horizontal tak sengaja saat sidebar off-canvas */
 }
 
 /* ---------- Corporate application shell ---------- */
 .crf-app-shell { min-height: 100vh; display: flex; }
+
 .crf-sidebar {
-  width: 207px;
+  width: var(--crf-sidebar-width);
   height: 100vh;
 
   position: fixed;
@@ -48,10 +57,13 @@ body {
 
   overflow-y: auto;
 
-  z-index: 1000;
+  z-index: 1050;
+
+  transition: transform 0.25s ease;
 }
+
 .crf-sidebar-brand {
-  height: 58px; background: #1c8fdb; display: flex; align-items: center; gap: 0.55rem; padding: 0 1.2rem;
+  height: var(--crf-topbar-height); background: #1c8fdb; display: flex; align-items: center; gap: 0.55rem; padding: 0 1.2rem;
   color: #1F2937; text-decoration: none; font-weight: 700; border-bottom: 1px solid #D1D5DB;
 }
 .crf-sidebar-mark { color: #fff; font-size: 1rem; }
@@ -73,33 +85,52 @@ body {
 .crf-sidebar-nav a.active { border-right: 3px solid #3498DB; }
 .crf-sidebar-footer { margin-top: auto; padding: 1rem 1.05rem; border-top: 1px solid #303b4d; }
 .crf-sidebar-footer a { color: #f87171; text-decoration: none; font-size: 0.78rem; }
+
 .crf-content-shell {
   min-width: 0;
-
-  margin-left: 207px;
-
-  width: calc(100% - 207px);
-
+  margin-left: var(--crf-sidebar-width);
+  width: calc(100% - var(--crf-sidebar-width));
   display: flex;
   flex-direction: column;
+  transition: margin-left 0.25s ease, width 0.25s ease;
 }
-.crf-topbar {
-  height: 58px;
 
+.crf-topbar {
+  height: var(--crf-topbar-height);
   position: sticky;
   top: 0;
-
   background: #1c8fdb;
   color: #fff;
-
   display: flex;
   align-items: center;
   justify-content: flex-end;
-
   padding: 0 1.35rem;
-
   z-index: 900;
+  gap: 0.75rem;
 }
+
+/* Tombol hamburger: disembunyikan di desktop, muncul di mobile (lihat media query) */
+.crf-sidebar-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.4rem;
+  margin-right: auto;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Overlay gelap di belakang sidebar saat dibuka di mobile */
+.crf-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 1040;
+}
+
 .crf-breadcrumb { display: flex; align-items: center; gap: 0.65rem; font-size: 0.76rem; }
 .crf-breadcrumb strong { font-size: 0.9rem; }
 .crf-breadcrumb span { color: #ced6e3; }
@@ -111,9 +142,16 @@ body {
   gap: 0.65rem;
   text-align: right;
   font-size: 0.74rem;
+  min-width: 0;
+}
+.crf-user strong {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .crf-user small { display: block; color: #c5cfde; font-size: 0.63rem; }
-.crf-avatar { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: #53627d; font-size: 0.72rem; }
+.crf-avatar { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: #53627d; font-size: 0.72rem; }
 .crf-content-shell > .crf-footer { margin-top: auto; }
 .crf-navbar { display: none; }
 .crf-brand, .crf-brand-mark, .crf-brand-text { display: none; }
@@ -123,6 +161,7 @@ body {
 .crf-page {
   flex: 1;
   padding: 1.75rem 1.6rem 2.5rem;
+  min-width: 0;
 }
 .crf-page > .container { max-width: none; padding: 0; }
 
@@ -158,6 +197,7 @@ body {
   padding: 1.1rem 1.4rem;
   border-bottom: 1px solid var(--crf-gray-300);
   background-color: var(--crf-blue-100);
+  flex-wrap: wrap;
 }
 
 .crf-section-number {
@@ -243,8 +283,17 @@ textarea.form-control {
   border-color: var(--crf-blue-700);
 }
 
+/* Baris tombol aksi (Batal/Simpan, dsb): rapi di semua ukuran */
+.crf-page-header .d-flex.gap-2,
+.d-flex.justify-content-end.gap-2 {
+  flex-wrap: wrap;
+}
+
 /* ---------- Badges: Status & Level ---------- */
-.badge-status-draft   { background-color: var(--crf-gray-300); color: var(--crf-gray-900); }
+.badge-status-draft {
+    background-color: #E0F2FE;
+    color: #0369A1;
+}
 .badge-status-proses  { background-color: #FFF1D6; color: var(--crf-amber); }
 .badge-status-solve   { background-color: #DFF3E4; color: var(--crf-green); }
 .badge-status-cancel  { background-color: #FBE3E1; color: var(--crf-red); }
@@ -278,7 +327,7 @@ textarea.form-control {
 }
 .crf-stat-card span { display: block; color: #52627a; font-size: 0.73rem; margin-bottom: 0.45rem; }
 .crf-stat-card strong { color: #172b4d; font-size: 1.4rem; line-height: 1; }
-.crf-table-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
+.crf-table-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
 .crf-table-heading h2 { color: #172b4d; font-size: 1rem; font-weight: 700; margin: 0; }
 
 .crf-table thead th {
@@ -307,6 +356,7 @@ textarea.form-control {
 .crf-detail-value {
   margin-bottom: 1.1rem;
   white-space: pre-line;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Footer ---------- */
@@ -317,66 +367,32 @@ textarea.form-control {
   text-align: center;
 }
 
-@media (max-width: 768px) {
-  .crf-sidebar {
-    width: 58px;
-    height: 100vh;
-
-    position: fixed;
-    top: 0;
-    left: 0;
-  }
-  .crf-sidebar-brand { padding: 0; justify-content: center; }
-  .crf-sidebar-brand > span:last-child, .crf-sidebar-section, .crf-sidebar-nav span, .crf-sidebar-footer a { display: none; }
-  .crf-sidebar-nav a { justify-content: center; padding: 0.75rem 0; }
-  .crf-sidebar-footer { padding: 1rem 0; text-align: center; }
-  .crf-breadcrumb span:last-child { display: none; }
-  .crf-page { padding: 1.25rem 0.9rem 2rem; }
-  .crf-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
 /* ---------- Alerts spacing ---------- */
 .crf-alert {
   margin-bottom: 1.5rem;
 }
 
 /* =========================================================
-   Dashboard Admin - Perapihan Tabel
+   Dashboard Admin - Perapihan Tabel (desktop)
    ========================================================= */
 
-/* Nomor Register */
-.crf-table td:nth-child(2) {
-    white-space: nowrap;
-}
-
-/* Tanggal */
+.crf-table td:nth-child(2),
 .crf-table td:nth-child(3) {
     white-space: nowrap;
 }
 
-/* Level Urgensi */
-.crf-table td:nth-child(8) {
+.crf-table td:nth-child(8),
+.crf-table td:nth-child(9) {
     min-width: 110px;
 }
 
-.crf-table td:nth-child(8) .crf-badge {
-    white-space: normal;
-    line-height: 1.3;
-    text-align: center;
-}
-
-/* Status */
-.crf-table td:nth-child(9) {
-    min-width: 125px;
-}
-
+.crf-table td:nth-child(8) .crf-badge,
 .crf-table td:nth-child(9) .crf-badge {
     white-space: normal;
     line-height: 1.3;
     text-align: center;
 }
 
-/* Aksi */
 .crf-table td:nth-child(10) {
     white-space: nowrap;
 }
@@ -396,7 +412,6 @@ textarea.form-control {
     padding-left: 34px;
 }
 
-/* Garis vertikal */
 .crf-timeline::before {
     content: "";
     position: absolute;
@@ -407,19 +422,16 @@ textarea.form-control {
     background: #d6dce5;
 }
 
-/* Setiap item timeline */
 .crf-timeline-item {
     position: relative;
     padding-bottom: 24px;
     min-height: 48px;
 }
 
-/* Hilangkan padding pada item terakhir */
 .crf-timeline-item:last-child {
     padding-bottom: 0;
 }
 
-/* Titik timeline */
 .crf-timeline-dot {
     position: absolute;
     left: -34px;
@@ -433,13 +445,11 @@ textarea.form-control {
     z-index: 2;
 }
 
-/* Isi timeline */
 .crf-timeline-content {
     position: relative;
     padding-left: 0;
 }
 
-/* Baris judul + tanggal */
 .crf-timeline-top {
     display: flex;
     justify-content: space-between;
@@ -448,7 +458,6 @@ textarea.form-control {
     flex-wrap: wrap;
 }
 
-/* Nama aktivitas */
 .crf-timeline-top strong {
     display: block;
     color: #172b4d;
@@ -456,22 +465,20 @@ textarea.form-control {
     font-weight: 600;
 }
 
-/* Tanggal */
 .crf-timeline-date {
     color: #6c757d;
     font-size: 13px;
     white-space: nowrap;
 }
 
-/* Deskripsi */
 .crf-timeline-description {
     margin-top: 5px;
     color: #343a40;
     font-size: 14px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
-/* Actor */
 .crf-timeline-actor {
     margin-top: 4px;
     color: #6c757d;
@@ -481,4 +488,163 @@ textarea.form-control {
 .badge-status-revisi {
     background-color: #EDE9FE;
     color: #6D28D9;
+}
+
+/* =====================================================================
+   RESPONSIVE BREAKPOINTS
+   Mobile-first tambahan. Breakpoint utama: 992px (tablet) & 768px (HP).
+   ===================================================================== */
+
+/* ---------- Tablet (<= 992px): sidebar mulai ramping, grid stat 3 kolom ---------- */
+@media (max-width: 992px) {
+  .crf-stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+  .crf-page { padding: 1.5rem 1.25rem 2rem; }
+}
+
+/* ---------- Mobile (<= 768px): sidebar jadi off-canvas ---------- */
+@media (max-width: 768px) {
+
+  /* Sidebar disembunyikan di luar layar, muncul sebagai overlay saat dibuka */
+  .crf-sidebar {
+    width: min(240px, 80vw);
+    transform: translateX(-100%);
+    box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+  }
+
+  .crf-app-shell.crf-sidebar-open .crf-sidebar {
+    transform: translateX(0);
+  }
+
+  .crf-app-shell.crf-sidebar-open .crf-sidebar-overlay {
+    display: block;
+  }
+
+  .crf-sidebar-brand > span:last-child,
+  .crf-sidebar-section,
+  .crf-sidebar-nav span,
+  .crf-sidebar-footer a span {
+    display: inline;
+  }
+
+  /* Konten selalu selebar layar; sidebar melayang di atasnya, bukan mendorong */
+  .crf-content-shell {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .crf-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .crf-topbar {
+    justify-content: flex-start;
+    padding: 0 1rem;
+  }
+
+  .crf-user strong { max-width: 90px; font-size: 0.7rem; }
+  .crf-user small { display: none; }
+
+  .crf-breadcrumb span:last-child { display: none; }
+
+  .crf-page { padding: 1.1rem 0.85rem 1.75rem; }
+
+  .crf-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+  .crf-stat-card { padding: 0.8rem 0.9rem; min-height: 68px; }
+  .crf-stat-card strong { font-size: 1.15rem; }
+
+  .crf-section-body { padding: 1rem; }
+  .crf-section-header { padding: 0.9rem 1rem; }
+
+  /* Tombol aksi jadi full width & bertumpuk di layar sempit */
+  .crf-page-header .d-flex.gap-2 {
+    width: 100%;
+  }
+  .crf-page-header .d-flex.gap-2 > a,
+  .crf-page-header .d-flex.gap-2 > button {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  form .d-flex.justify-content-end.gap-2 {
+    flex-direction: column-reverse;
+  }
+  form .d-flex.justify-content-end.gap-2 > a,
+  form .d-flex.justify-content-end.gap-2 > button {
+    width: 100%;
+  }
+
+  /* ---- Tabel besar (dashboard admin & pengajuan_saya) jadi kartu ---- */
+  .crf-table-responsive-cards table.crf-table,
+  .crf-table-responsive-cards table.crf-table thead,
+  .crf-table-responsive-cards table.crf-table tbody,
+  .crf-table-responsive-cards table.crf-table tr,
+  .crf-table-responsive-cards table.crf-table td,
+  .crf-table-responsive-cards table.crf-table th {
+    display: block;
+    width: 100%;
+  }
+
+  .crf-table-responsive-cards table.crf-table thead {
+    display: none;
+  }
+
+  .crf-table-responsive-cards table.crf-table tr {
+    border: 1px solid var(--crf-gray-300);
+    border-radius: 8px;
+    margin-bottom: 0.85rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .crf-table-responsive-cards table.crf-table td,
+  .crf-table-responsive-cards table.crf-table th {
+    border: none;
+    padding: 0.35rem 0;
+    white-space: normal !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: flex-start;
+    text-align: right;
+    font-weight: normal;
+  }
+
+  .crf-table-responsive-cards table.crf-table td::before,
+  .crf-table-responsive-cards table.crf-table th::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--crf-gray-600);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-align: left;
+    flex: 0 0 40%;
+  }
+
+  .crf-table-responsive-cards table.crf-table td:last-child,
+  .crf-table-responsive-cards table.crf-table th:last-child {
+    justify-content: flex-start;
+  }
+  .crf-table-responsive-cards table.crf-table td:last-child::before,
+  .crf-table-responsive-cards table.crf-table th:last-child::before {
+    display: none;
+  }
+  .crf-table-responsive-cards table.crf-table td:last-child .d-flex,
+  .crf-table-responsive-cards table.crf-table th:last-child .d-flex {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .crf-timeline { padding-left: 26px; }
+  .crf-timeline-dot { left: -26px; width: 14px; height: 14px; }
+  .crf-timeline-top strong { font-size: 14px; }
+}
+
+/* ---------- Layar sangat sempit (<= 400px) ---------- */
+@media (max-width: 400px) {
+  .crf-stat-grid { grid-template-columns: 1fr; }
+  .crf-page-header h1 { font-size: 1.15rem; }
 }
