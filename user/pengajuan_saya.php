@@ -396,7 +396,7 @@ require_once __DIR__ . '/../includes/header.php';
 
                     </form>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive crf-table-responsive-cards">
 
                         <table class="table table-bordered table-hover align-middle">
 
@@ -423,13 +423,12 @@ require_once __DIR__ . '/../includes/header.php';
                                 <tr>
 
                                     <!-- NO -->
-                                    <td>
+                                    <td data-label="No">
                                         <?= $offset + $index + 1 ?>
                                     </td>
 
-
-                                                                        <!-- NOMOR REGISTER -->
-                                    <td style="white-space: nowrap;">
+                                 <!-- NOMOR REGISTER -->
+                                    <td data-label="Nomor Register" style="white-space: nowrap;">
                                         <?php if (!empty($row['request_number'])): ?>
                                             <?= h($row['request_number']) ?>
                                         <?php else: ?>
@@ -439,13 +438,13 @@ require_once __DIR__ . '/../includes/header.php';
 
 
                                     <!-- NAMA PENGAJU -->
-                                    <td style="min-width: 120px; max-width: 140px;">
+                                    <td data-label="Pengaju" style="min-width: 120px; max-width: 140px;">
                                         <?= h($row['full_name']) ?>
                                     </td>
 
 
                                     <!-- TANGGAL -->
-                                    <td style="white-space: nowrap;">
+                                    <td data-label="Tanggal Pengajuan" style="white-space: nowrap;">
                                         <?php if (!empty($row['submission_date'])): ?>
                                             <?= date(
                                                 'd-m-Y',
@@ -458,13 +457,13 @@ require_once __DIR__ . '/../includes/header.php';
 
 
                                     <!-- LEVEL -->
-                                    <td style="white-space: nowrap;">
+                                    <td data-label="Level Urgensi" style="white-space: nowrap;">
                                         <?= h($row['level'] ?? '-') ?>
                                     </td>
 
 
                                     <!-- STATUS -->
-                                    <td style="white-space: nowrap;">
+                                    <td data-label="Status" style="white-space: nowrap;">
 
                                         <span class="crf-badge <?= statusBadgeClass($row['status']) ?>">
                                             <?= h(statusLabel($row['status'])) ?>
@@ -474,7 +473,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 
                                     <!-- PERUBAHAN -->
-                                    <td style="min-width: 150px; max-width: 180px;">
+                                    <td data-label="Perubahan yang Diminta" style="min-width: 150px; max-width: 180px;">
                                         <?= nl2br(
                                             h($row['change_description'] ?? '-')
                                         ) ?>
@@ -482,7 +481,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 
                                     <!-- TANGGAPAN -->
-                                    <td style="min-width: 150px; max-width: 180px;">
+                                    <td data-label="Tanggapan / Tindak Lanjut" style="min-width: 150px; max-width: 180px;">
 
                                         <?php if (!empty($row['tanggapan_tindak_lanjut'])): ?>
 
@@ -502,7 +501,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 
                                    <!-- AKSI -->
-                                <td style="white-space: nowrap;">
+                                <td data-label="Aksi" style="white-space: nowrap;">
 
                                     <div class="d-flex gap-2">
 
@@ -645,11 +644,13 @@ require_once __DIR__ . '/../includes/header.php';
                                         <i class="bi bi-chevron-right"></i>
                                     </a>
 
-                                </ul>
+                                </li>
+
+                            </ul>
 
                         </nav>
 
-                    <?php endif; ?> </li>
+                    <?php endif; ?>
 
                 <?php endif; ?>
 
