@@ -28,6 +28,10 @@
 
 * { box-sizing: border-box; }
 
+a, button, .btn, .crf-badge, .crf-stat-card, .crf-table tbody tr {
+  transition: all 0.18s ease;
+}
+
 body {
   font-family: var(--crf-font);
   background-color: var(--crf-gray-100);
@@ -36,6 +40,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden; /* cegah scroll horizontal tak sengaja saat sidebar off-canvas */
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ---------- Corporate application shell ---------- */
@@ -49,8 +55,8 @@ body {
   top: 0;
   left: 0;
 
-  background: #E5E7EB;
-  color: #374151;
+  background: linear-gradient(180deg, #16233a 0%, #101a2c 100%);
+  color: #C7D2E0;
 
   display: flex;
   flex-direction: column;
@@ -64,7 +70,7 @@ body {
 
 .crf-sidebar-brand {
   height: var(--crf-topbar-height); background: #1c8fdb; display: flex; align-items: center; gap: 0.55rem; padding: 0 1.2rem;
-  color: #1F2937; text-decoration: none; font-weight: 700; border-bottom: 1px solid #D1D5DB;
+  color: #1F2937; text-decoration: none; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .crf-sidebar-mark { color: #fff; font-size: 1rem; }
 .ppu-logo {
@@ -76,15 +82,21 @@ body {
 .ppu-brand-text {
     color: #ffffff;
 }
-.crf-sidebar-section { padding: 1.15rem 1.05rem 0.45rem; font-size: 0.72rem; color: #718096; }
+.crf-sidebar-section { padding: 1.15rem 1.05rem 0.45rem; font-size: 0.72rem; color: #6B7A96; text-transform: uppercase; letter-spacing: 0.05em; }
 .crf-sidebar-nav a {
-  display: flex; gap: 0.65rem; align-items: center; padding: 0.58rem 1.05rem;
-  color: #4B5563; text-decoration: none; font-size: 0.79rem;
+  display: flex; gap: 0.65rem; align-items: center; padding: 0.6rem 1.05rem; margin: 0.1rem 0.6rem;
+  color: #A9B6CC; text-decoration: none; font-size: 0.79rem; border-radius: 8px;
 }
-.crf-sidebar-nav a:hover, .crf-sidebar-nav a.active { color: #1F2937; background: #D1D5DB; }
-.crf-sidebar-nav a.active { border-right: 3px solid #3498DB; }
-.crf-sidebar-footer { margin-top: auto; padding: 1rem 1.05rem; border-top: 1px solid #303b4d; }
-.crf-sidebar-footer a { color: #f87171; text-decoration: none; font-size: 0.78rem; }
+.crf-sidebar-nav a:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.crf-sidebar-nav a.active {
+  color: #fff;
+  background: rgba(59, 130, 246, 0.18);
+  border-right: none;
+  box-shadow: inset 3px 0 0 0 #3B82F6;
+}
+.crf-sidebar-footer { margin-top: auto; padding: 1rem 1.05rem; border-top: 1px solid rgba(255,255,255,0.08); }
+.crf-sidebar-footer a { color: #F87171; text-decoration: none; font-size: 0.78rem; }
+.crf-sidebar-footer a:hover { color: #FCA5A5; }
 
 .crf-content-shell {
   min-width: 0;
@@ -170,10 +182,11 @@ body {
 }
 
 .crf-page-header h1 {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--crf-blue-900);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.3rem;
+  letter-spacing: -0.01em;
 }
 
 .crf-page-header p {
@@ -184,10 +197,11 @@ body {
 /* ---------- Form sections ---------- */
 .crf-section {
   background-color: var(--crf-white);
-  border: 1px solid var(--crf-gray-300);
-  border-radius: var(--crf-radius);
+  border: 1px solid #E7E9EC;
+  border-radius: 12px;
   margin-bottom: 1.5rem;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.05);
 }
 
 .crf-section-header {
@@ -256,18 +270,42 @@ textarea.form-control {
   color: var(--crf-gray-600);
 }
 
+.form-control,
+.form-select {
+  border-radius: 8px;
+  border-color: var(--crf-gray-300);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--crf-blue-700);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
 /* ---------- Buttons ---------- */
+.btn {
+  border-radius: 8px !important;
+}
+
 .btn-crf-primary {
   background-color: var(--crf-blue-700);
   border-color: var(--crf-blue-700);
   color: var(--crf-white);
   font-weight: 600;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.15);
 }
 
 .btn-crf-primary:hover {
   background-color: var(--crf-blue-900);
   border-color: var(--crf-blue-900);
   color: var(--crf-white);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.22);
+}
+
+.btn-crf-primary:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.15);
 }
 
 .btn-crf-outline {
@@ -281,6 +319,16 @@ textarea.form-control {
   background-color: var(--crf-blue-100);
   color: var(--crf-blue-900);
   border-color: var(--crf-blue-700);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.12);
+}
+
+.btn-crf-outline:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-sm:active, .btn:active {
+  transform: scale(0.98);
 }
 
 /* Baris tombol aksi (Batal/Simpan, dsb): rapi di semua ukuran */
@@ -304,27 +352,72 @@ textarea.form-control {
 .badge-level-tinggi { background-color: #FBE3E1; color: var(--crf-red); }
 
 .crf-badge {
-  display: inline-block;
-  padding: 0.3rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.7rem 0.32rem 0.6rem;
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 700;
 }
 
+.crf-badge::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.badge {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px !important;
+}
+
+.badge:not(.crf-badge)::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  flex-shrink: 0;
+}
+
 /* ---------- Dashboard table ---------- */
 .crf-table-card {
   background-color: var(--crf-white);
-  border: 1px solid var(--crf-gray-300);
-  border-radius: var(--crf-radius);
+  border: 1px solid #E7E9EC;
+  border-radius: 12px;
   padding: 1.4rem;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.05);
 }
 .crf-stat-grid {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.6rem;
 }
 .crf-stat-card {
-  background: var(--crf-white); border: 1px solid #dfe3e8; border-radius: 9px;
+  background: var(--crf-white); border: 1px solid #eef0f2; border-left: 3px solid #cbd5e1; border-radius: 10px;
   padding: 1rem 1.15rem; min-height: 80px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
+.crf-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 24, 40, 0.08);
+}
+
+/* Aksen warna per kartu ringkasan, mengikuti urutan tetap di dashboard & pengajuan_saya:
+   Total, Belum Ditindak Lanjuti, Perlu Revisi, Dalam Proses, Selesai, Dibatalkan */
+.crf-stat-grid .crf-stat-card:nth-child(1) { border-left-color: var(--crf-blue-700); }
+.crf-stat-grid .crf-stat-card:nth-child(2) { border-left-color: #94a3b8; }
+.crf-stat-grid .crf-stat-card:nth-child(3) { border-left-color: #7c3aed; }
+.crf-stat-grid .crf-stat-card:nth-child(4) { border-left-color: var(--crf-amber); }
+.crf-stat-grid .crf-stat-card:nth-child(5) { border-left-color: var(--crf-green); }
+.crf-stat-grid .crf-stat-card:nth-child(6) { border-left-color: var(--crf-red); }
+
 .crf-stat-card span { display: block; color: #52627a; font-size: 0.73rem; margin-bottom: 0.45rem; }
 .crf-stat-card strong { color: #172b4d; font-size: 1.4rem; line-height: 1; }
 .crf-table-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; flex-wrap: wrap; gap: 0.5rem; }
@@ -344,6 +437,16 @@ textarea.form-control {
   font-size: 0.92rem;
 }
 
+.crf-table tbody tr:hover {
+  background-color: #F8FAFC;
+}
+
+.crf-table td.text-center.text-muted,
+.crf-table-card .text-center.text-muted {
+  font-size: 0.95rem;
+  padding: 2.5rem 1rem !important;
+}
+
 /* ---------- Detail view ---------- */
 .crf-detail-label {
   font-size: 0.8rem;
@@ -357,6 +460,7 @@ textarea.form-control {
   margin-bottom: 1.1rem;
   white-space: pre-line;
   overflow-wrap: anywhere;
+  line-height: 1.65;
 }
 
 /* ---------- Footer ---------- */
@@ -370,6 +474,13 @@ textarea.form-control {
 /* ---------- Alerts spacing ---------- */
 .crf-alert {
   margin-bottom: 1.5rem;
+}
+
+/* Samakan .card bawaan Bootstrap (dipakai di pengajuan_saya.php) dengan crf-section */
+.card {
+  border: 1px solid #E7E9EC;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.05);
 }
 
 /* =========================================================
