@@ -126,37 +126,55 @@ require_once __DIR__ . '/../includes/header.php';
 
 
     <!-- RINGKASAN CRF -->
-    <div class="row g-3 mb-4">
+    <div class="crf-section">
 
-      <div class="col-md-6">
+      <div class="crf-section-header">
 
-        <div class="crf-detail-label">
-          Rincian Permohonan Perubahan
-        </div>
+        <span class="crf-section-number">
+          <i class="bi bi-info-circle"></i>
+        </span>
 
-        <div class="crf-detail-value">
-          <?= h($crf['change_description'] ?? 'Belum diisi (draft)') ?>
-        </div>
+        <h2>Ringkasan CRF</h2>
 
       </div>
 
+      <div class="crf-section-body">
 
-      <div class="col-md-6">
+        <div class="row g-3">
 
-        <div class="crf-detail-label">
-          Kategori Perubahan
-        </div>
+          <div class="col-md-6">
 
-        <div class="crf-detail-value">
+            <div class="crf-detail-label">
+              Rincian Permohonan Perubahan
+            </div>
 
-          <?= h($crf['change_category'] ?? '-') ?>
+            <div class="crf-detail-value mb-0">
+              <?= h($crf['change_description'] ?? 'Belum diisi (draft)') ?>
+            </div>
 
-          <?php if (!empty($crf['change_category_detail'])): ?>
+          </div>
 
-            &mdash;
-            <?= h($crf['change_category_detail']) ?>
 
-          <?php endif; ?>
+          <div class="col-md-6">
+
+            <div class="crf-detail-label">
+              Kategori Perubahan
+            </div>
+
+            <div class="crf-detail-value mb-0">
+
+              <?= h($crf['change_category'] ?? '-') ?>
+
+              <?php if (!empty($crf['change_category_detail'])): ?>
+
+                &mdash;
+                <?= h($crf['change_category_detail']) ?>
+
+              <?php endif; ?>
+
+            </div>
+
+          </div>
 
         </div>
 
