@@ -195,7 +195,8 @@ body {
 }
 
 /* ---------- Form sections ---------- */
-.crf-section {
+.crf-section,
+.crf-detail-section {
   background-color: var(--crf-white);
   border: 1px solid #E7E9EC;
   border-radius: 12px;
